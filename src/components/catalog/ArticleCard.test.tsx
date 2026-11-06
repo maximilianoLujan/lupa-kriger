@@ -27,10 +27,17 @@ const box: ProductBox = {
 }
 
 describe('ArticleCard', () => {
-  it('muestra descripción principal y detalles', () => {
+  it('muestra código, descripción principal y detalles', () => {
     render(<ArticleCard box={box} warehouses={warehouses} query="" />)
+    expect(screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === 'Cód. 1')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'PASTILLA DE FRENO' })).toBeInTheDocument()
     expect(screen.getByText('JUEGO X4')).toBeInTheDocument()
+  })
+
+  it('resalta el código del artículo cuando se busca por código', () => {
+    render(<ArticleCard box={{ ...box, articleCode: '10001' }} warehouses={warehouses} query="10001" />)
+    const marks = screen.getAllByText((_, el) => el?.tagName === 'MARK').map((m) => m.textContent)
+    expect(marks).toContain('10001')
   })
 
   it('agrupa modelos por marca y muestra años', () => {
@@ -90,6 +97,12 @@ describe('ArticleCard', () => {
     )
     expect(screen.getByRole('heading', { name: 'PASTILLA DE FRENO' })).toBeInTheDocument()
     expect(screen.queryByText('Modelos')).not.toBeInTheDocument()
+  })
+
+  it('sin modelos, los equivalentes siguen en su columna (precio y stock no se corren)', () => {
+    render(<ArticleCard box={{ ...box, compatibleModels: [] }} warehouses={warehouses} query="" />)
+    const list = screen.getByText('FRIC-ROT').closest('ul')!
+    expect(list).toHaveClass('lg:col-start-4')
   })
 })
 

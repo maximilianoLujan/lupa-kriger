@@ -10,6 +10,8 @@ export default defineConfig({
     pool: 'vmThreads',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Los tests siempre corren contra el mock, sin importar el .env local del desarrollador.
+    env: { VITE_DATA_SOURCE: 'mock', VITE_API_URL: '' },
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],

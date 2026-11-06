@@ -189,6 +189,8 @@ No usar `black`, `gray-700+`, `slate-800+` ni clases `*-900`. Para agregar un co
    email y la contraseña de ese usuario: tiene que ver los artículos de la empresa con precio y stock.
 
 Si el login da «No se pudo conectar con el servidor», la API no está corriendo o el origen no está en `CORS_ORIGINS`.
+Contra producción, `VITE_API_URL` es la **API** (`https://erp-api.aokitech.com.ar`), no la web (`erp-demo.aokitech.com.ar`):
+la web responde a todo con un redirect a `/login` y el login nunca entra.
 Si entra pero la búsqueda da 403, al usuario le falta el permiso o la empresa no tiene la Lupa activa.
 
 ## Despliegue

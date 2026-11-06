@@ -36,6 +36,9 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
         <ArticlePhoto src={box.photoUrl} alt={box.description} className="h-20 w-20 shrink-0 lg:h-28 lg:w-28" />
 
         <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold tracking-wide text-ink-soft tabular-nums">
+            Cód. <Highlight text={box.articleCode} query={query} />
+          </p>
           <h3 className="text-sm leading-snug font-bold text-ink">
             <Highlight text={mainDetail} query={query} />
           </h3>
@@ -75,8 +78,8 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
         </div>
       )}
 
-      {/* Equivalentes */}
-      <ul className="mt-3 divide-y divide-line border-t border-line lg:mt-0 lg:border-t-0">
+      {/* Equivalentes: siempre en la cuarta columna, aunque no haya modelos. */}
+      <ul className="mt-3 divide-y divide-line border-t border-line lg:col-start-4 lg:mt-0 lg:border-t-0">
         {box.alternatives.map((a) => (
           <AlternativeRow key={a.articleCode} article={a} warehouses={warehouses} query={query} />
         ))}
