@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import logo from '../../assets/logo.jpg'
 import type { ProductBox, Warehouse } from '../../types/article'
@@ -85,6 +86,22 @@ describe('ArticleCard', () => {
 
     rerender(<ArticleCard box={{ ...box, photoUrl: '/foto.jpg' }} warehouses={warehouses} query="" />)
     expect(screen.getByRole('img', { name: 'PASTILLA DE FRENO' })).toHaveAttribute('src', '/foto.jpg')
+  })
+
+  it('la card usa la miniatura y el visor abre la foto completa', async () => {
+    const user = userEvent.setup()
+    render(
+      <ArticleCard
+        box={{ ...box, photoUrl: '/grande.jpg', photoThumbUrl: '/thumb.jpg' }}
+        warehouses={warehouses}
+        query=""
+      />,
+    )
+    expect(screen.getByRole('img', { name: 'PASTILLA DE FRENO' })).toHaveAttribute('src', '/thumb.jpg')
+
+    await user.click(screen.getByRole('button', { name: /ver foto de pastilla de freno en grande/i }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('img', { name: 'PASTILLA DE FRENO' })).toHaveAttribute('src', '/grande.jpg')
   })
 
   it('sin detalles usa la descripción como título y sin modelos no muestra la sección', () => {

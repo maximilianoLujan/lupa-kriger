@@ -122,8 +122,9 @@ y `stock` por código de depósito (string decimal). `ApiArticlesRepository` tra
 
 **Fotos:** cada cajita trae `photoUrl`, una ruta firmada relativa a la API (`/v1/public/lupa/photos?token=…`) que vale
 un día y que el navegador carga sin token de sesión (ADR-0257 del ERP). El repositorio la vuelve absoluta con la base del
-cliente HTTP y le agrega `variant=thumb` para pedir la miniatura (si no hay, la API manda la original). Sin `photoUrl`, o
-si la imagen falla (ruta vencida, por ejemplo), `ArticlePhoto` muestra el logo del cliente.
+cliente HTTP: tal cual en `photoUrl` (foto completa, para el visor) y con `variant=thumb` en `photoThumbUrl` (miniatura
+para la card; si no hay, la API manda la original). Sin `photoUrl`, o si la imagen falla (ruta vencida, por ejemplo),
+`ArticlePhoto` muestra el logo del cliente.
 
 ### Agregar artículos al mock
 
@@ -157,7 +158,7 @@ El carrito es un store de Zustand (`src/cart/store.ts`) persistido en `sessionSt
 - Paginado con botón "Cargar más".
 - Stock con círculos de color: verde más de 5, amarillo entre 1 y 5, rojo sin stock. Más de 9 se muestra como "+9". Hay un solo depósito y la columna dice STOCK; si la API devuelve varios, aparece una columna por depósito con su nombre corto.
 - Layout mobile first: la cajita se apila en celular y se vuelve fila con columnas (foto, descripción, modelo, equivalentes) en pantallas grandes, como en lupa-web.
-- Fotos: si el artículo no tiene URL o la imagen falla al cargar, `ArticlePhoto` muestra el logo del cliente.
+- Fotos: la card muestra la miniatura (`photoThumbUrl`, o `photoUrl` si no hay) y al tocarla se abre la foto completa en un visor a pantalla completa (`PhotoLightbox`), que se cierra con Escape, con el botón o tocando fuera. Si el artículo no tiene URL o la imagen falla al cargar, `ArticlePhoto` muestra el logo del cliente, sin visor.
 - Carrito (`src/cart/`): cada equivalente tiene un botón de agregar en la columna PEDIR; al tocarlo se convierte en un control − [cantidad] + donde también se puede escribir la cantidad a mano (`QuantityStepper`). Tras 2,5 s sin actividad el control se cierra solo y vuelve el botón con la cantidad que hay en el carrito; tocarlo de nuevo reabre el control. Llegar a 0 lo saca del carrito. Contador en el header y panel lateral con el mismo control y el total. Se persiste en `sessionStorage`. El envío del pedido todavía no existe.
 - Las columnas de la cabecera y de las cards comparten las grillas de `src/components/catalog/columns.ts`, así los títulos quedan alineados con el contenido.
 - Header con chips de secciones (`NavBar`). Las que todavía no existen (Pedidos, Ofertas, Favoritos, Mis vehículos, Cuenta corriente) se ven bloqueadas con candado y muestran "Próximamente" al pasar el mouse, enfocar o tocar. Para habilitar una, sacale `locked` en `NAV_ITEMS`.

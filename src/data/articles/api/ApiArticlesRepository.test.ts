@@ -60,8 +60,9 @@ describe('ApiArticlesRepository', () => {
           { articleCode: 'FR-100', particularCode: 'FR-100', description: 'Filtro Fram', brandCode: 'Fram', brandName: 'Fram', priceList: 2420, stock: { GUA: 12 } },
           { articleCode: 'MN-200', particularCode: 'MN-200', description: 'Filtro Mann', brandCode: '', brandName: '', priceList: 0, stock: {} },
         ],
-        // La ruta firmada se vuelve absoluta (base del cliente HTTP) y pide la miniatura.
-        photoUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def&variant=thumb',
+        // La ruta firmada se vuelve absoluta (base del cliente HTTP); la miniatura pide `variant=thumb`.
+        photoUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def',
+        photoThumbUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def&variant=thumb',
       },
     ])
   })
@@ -74,19 +75,26 @@ describe('ApiArticlesRepository', () => {
     })
     const res = await new ApiArticlesRepository(http).search({ query: 'x', page: 1 })
     expect(res.data[0]).not.toHaveProperty('photoUrl')
+    expect(res.data[0]).not.toHaveProperty('photoThumbUrl')
   })
 
   describe('photoSrc', () => {
-    it('suma la base sin barra doble y el variant como parámetro extra', () => {
+    it('suma la base sin barra doble; sin variant es la foto completa', () => {
       expect(photoSrc('https://api.test/', '/v1/public/lupa/photos?token=t')).toBe(
-        'https://api.test/v1/public/lupa/photos?token=t&variant=thumb',
+        'https://api.test/v1/public/lupa/photos?token=t',
       )
     })
 
-    it('usa ? si la ruta no tiene query y undefined sin ruta', () => {
-      expect(photoSrc('https://api.test', '/foto.jpg')).toBe('https://api.test/foto.jpg?variant=thumb')
+    it('con variant thumb lo agrega como parámetro extra (& si ya hay query, ? si no)', () => {
+      expect(photoSrc('https://api.test', '/v1/public/lupa/photos?token=t', 'thumb')).toBe(
+        'https://api.test/v1/public/lupa/photos?token=t&variant=thumb',
+      )
+      expect(photoSrc('https://api.test', '/foto.jpg', 'thumb')).toBe('https://api.test/foto.jpg?variant=thumb')
+    })
+
+    it('sin ruta devuelve undefined', () => {
       expect(photoSrc('https://api.test', null)).toBeUndefined()
-      expect(photoSrc('https://api.test', '')).toBeUndefined()
+      expect(photoSrc('https://api.test', '', 'thumb')).toBeUndefined()
     })
   })
 

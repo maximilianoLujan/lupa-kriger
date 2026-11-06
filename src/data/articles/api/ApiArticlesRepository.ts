@@ -83,24 +83,31 @@ export class ApiArticlesRepository implements ArticlesRepository {
 
 function toProductBox(box: ApiBox, baseUrl: string): ProductBox {
   const photoUrl = photoSrc(baseUrl, box.photoUrl)
+  const photoThumbUrl = photoSrc(baseUrl, box.photoUrl, 'thumb')
   return {
     articleCode: box.code,
     description: box.name,
     details: box.details,
     compatibleModels: box.compatibleModels.map(toCompatibleModel),
     alternatives: box.alternatives.map(toAlternative),
-    ...(photoUrl ? { photoUrl } : {}),
+    ...(photoUrl && photoThumbUrl ? { photoUrl, photoThumbUrl } : {}),
   }
 }
 
 /**
- * URL absoluta de la miniatura: la API devuelve la ruta relativa y firmada; se le suma la base y `variant=thumb`
- * (si el archivo no tiene miniatura, la API manda la foto original).
+ * URL absoluta de la foto: la API devuelve la ruta relativa y firmada; se le suma la base. Con `variant: 'thumb'`
+ * pide la miniatura (si el archivo no la tiene, la API manda la foto original).
  */
-export function photoSrc(baseUrl: string, path: string | null | undefined): string | undefined {
+export function photoSrc(
+  baseUrl: string,
+  path: string | null | undefined,
+  variant?: 'thumb',
+): string | undefined {
   if (!path) return undefined
+  const url = `${baseUrl.replace(/\/$/, '')}${path}`
+  if (!variant) return url
   const separator = path.includes('?') ? '&' : '?'
-  return `${baseUrl.replace(/\/$/, '')}${path}${separator}variant=thumb`
+  return `${url}${separator}variant=${variant}`
 }
 
 function toCompatibleModel(m: ApiCompatibleModel): CompatibleModel {

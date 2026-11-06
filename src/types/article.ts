@@ -41,7 +41,10 @@ export interface AlternativeArticle {
 export interface ProductBox {
   articleCode: string
   description: string
+  /** Foto en tamaño completo (se abre al tocar la miniatura). */
   photoUrl?: string
+  /** Miniatura para la card. Si falta, se usa `photoUrl`. */
+  photoThumbUrl?: string
   /** Líneas descriptivas. La primera es la principal. */
   details: string[]
   compatibleModels: CompatibleModel[]
