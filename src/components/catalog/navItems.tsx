@@ -3,20 +3,9 @@ import type { ReactNode } from 'react'
 export interface NavItem {
   key: string
   label: string
-  /** Color pastel del ícono. */
-  tone: 'brand' | 'sky' | 'mint' | 'butter' | 'lilac' | 'peach'
   icon: ReactNode
   /** Sin `locked` el item está disponible. */
   locked?: boolean
-}
-
-export const NAV_TONES: Record<NavItem['tone'], string> = {
-  brand: 'bg-brand text-brand-text',
-  sky: 'bg-sky text-sky-700',
-  mint: 'bg-mint text-emerald-700',
-  butter: 'bg-butter text-amber-700',
-  lilac: 'bg-lilac text-violet-700',
-  peach: 'bg-peach text-orange-700',
 }
 
 const iconProps = {
@@ -76,10 +65,10 @@ const receiptIcon = (
 
 /** Secciones del header. Para habilitar una, sacale `locked`. */
 export const NAV_ITEMS: NavItem[] = [
-  { key: 'catalogo', label: 'Catálogo', tone: 'brand', icon: searchIcon },
-  { key: 'pedidos', label: 'Pedidos', tone: 'sky', icon: cartIcon, locked: true },
-  { key: 'ofertas', label: 'Ofertas', tone: 'butter', icon: tagIcon, locked: true },
-  { key: 'favoritos', label: 'Favoritos', tone: 'peach', icon: heartIcon, locked: true },
-  { key: 'vehiculos', label: 'Mis vehículos', tone: 'mint', icon: carIcon, locked: true },
-  { key: 'cuenta', label: 'Cuenta corriente', tone: 'lilac', icon: receiptIcon, locked: true },
+  { key: 'catalogo', label: 'Catálogo', icon: searchIcon },
+  { key: 'pedidos', label: 'Pedidos', icon: cartIcon, locked: true },
+  { key: 'ofertas', label: 'Ofertas', icon: tagIcon, locked: true },
+  { key: 'favoritos', label: 'Favoritos', icon: heartIcon, locked: true },
+  { key: 'vehiculos', label: 'Mis vehículos', icon: carIcon, locked: true },
+  { key: 'cuenta', label: 'Cuenta corriente', icon: receiptIcon, locked: true },
 ]

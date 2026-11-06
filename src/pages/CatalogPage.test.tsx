@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { ArticlesRepository } from '../data/articles'
@@ -73,6 +73,24 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('link', { name: 'Catálogo' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getAllByRole('tooltip').length).toBeGreaterThanOrEqual(3)
     expect(screen.getByRole('button', { name: 'Pedidos' })).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('agrega al carrito desde una fila y lo muestra en el panel', async () => {
+    const { user } = await setup()
+    expect(screen.getByRole('button', { name: 'Abrir carrito' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Agregar FRIC-ROT FR-1024 al carrito' }))
+    await user.click(screen.getByRole('button', { name: 'Agregar FRIC-ROT FR-1024 al carrito' }))
+    await user.click(screen.getByRole('button', { name: 'Agregar MANN W 712/75 al carrito' }))
+
+    await user.click(screen.getByRole('button', { name: 'Abrir carrito, 3 unidades' }))
+    const dialog = screen.getByRole('dialog', { name: /carrito/i })
+    expect(within(dialog).getByText('FRIC-ROT')).toBeInTheDocument()
+    expect(within(dialog).getByText('MANN')).toBeInTheDocument()
+    expect(within(dialog).getByText('$ 67.600')).toBeInTheDocument() // 2 × 28.900 + 9.800
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cerrar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('muestra el nombre del usuario con iniciales y permite salir', async () => {

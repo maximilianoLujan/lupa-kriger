@@ -1,8 +1,9 @@
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import logo from '../../assets/logo.jpg'
 import type { ProductBox, Warehouse } from '../../types/article'
 import { yearRange } from '../../utils/yearRange'
+import { renderWithProviders as render } from '../../test/render'
 import { ArticleCard } from './ArticleCard'
 
 const warehouses: Warehouse[] = [

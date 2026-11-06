@@ -54,8 +54,8 @@ describe('NavBar', () => {
       <NavBar
         current="b"
         items={[
-          { key: 'a', label: 'A', tone: 'sky', icon: <span /> },
-          { key: 'b', label: 'B', tone: 'mint', icon: <span /> },
+          { key: 'a', label: 'A', icon: <span /> },
+          { key: 'b', label: 'B', icon: <span /> },
         ]}
       />,
     )

@@ -7,3 +7,5 @@
 - **Datos:** la UI solo habla con `ArticlesRepository`. Mock en `src/data/articles/mock/`, API en `src/data/articles/api/`. Se elige con `VITE_DATA_SOURCE`.
 - **Imágenes:** si una foto falta o falla, se muestra el logo del cliente (`ArticlePhoto`).
 - **Funcionalidades bloqueadas:** las que todavía no existen van en el header como chips con tooltip "Próximamente" (`NavBar`).
+- **Un solo acento de color** en la interfaz: el rosa de marca. Los demás pastel se usan con moderación (stock, fondos suaves), nunca varios juntos en un mismo bloque.
+- **Columnas alineadas:** cabecera y cards usan las grillas compartidas de `src/components/catalog/columns.ts`. Si cambiás una columna, cambiala ahí.

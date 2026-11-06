@@ -2,6 +2,7 @@ import type { CompatibleModel, ProductBox, Warehouse } from '../../types/article
 import { yearRange } from '../../utils/yearRange'
 import { AlternativeRow } from './AlternativeRow'
 import { ArticlePhoto } from './ArticlePhoto'
+import { CARD_GRID } from './columns'
 import { Highlight } from './Highlight'
 
 interface ArticleCardProps {
@@ -29,7 +30,7 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
   const brands = groupByBrand(box.compatibleModels)
 
   return (
-    <article className="rounded-2xl bg-white p-3 shadow-sm shadow-lilac ring-1 ring-line sm:p-4 lg:grid lg:grid-cols-[7rem_1fr_1fr_1.4fr] lg:gap-6">
+    <article className={`rounded-2xl bg-white p-3 shadow-sm shadow-lilac ring-1 ring-line sm:p-4 ${CARD_GRID}`}>
       {/* Foto + descripción (en mobile van juntas en una fila) */}
       <div className="flex gap-3 lg:contents">
         <ArticlePhoto src={box.photoUrl} alt={box.description} className="h-20 w-20 shrink-0 lg:h-28 lg:w-28" />

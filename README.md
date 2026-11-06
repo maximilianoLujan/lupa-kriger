@@ -54,9 +54,10 @@ La app queda en `http://localhost:5173`.
     ├── index.css         # Importa Tailwind + tema de marca (@theme)
     ├── assets/           # Logo del cliente
     ├── auth/             # Contexto de sesión, hook useAuth y credenciales mock
+    ├── cart/             # Carrito en memoria (CartProvider, useCart)
     ├── components/
     │   ├── ui/           # Button, Input
-    │   ├── catalog/      # ArticleCard, AlternativeRow, StockBadge, SearchBar, ListHeader, Highlight
+    │   ├── catalog/      # ArticleCard, AlternativeRow, AddToCartButton, CartDrawer, StockBadge, SearchBar, ListHeader, NavBar, Highlight
     │   └── Logo.tsx
     ├── config/env.ts     # Lee VITE_DATA_SOURCE y VITE_API_URL
     ├── data/articles/    # Repositorio de artículos: contrato, mock y API
@@ -115,6 +116,8 @@ Sumá objetos al array de `src/data/articles/mock/articles.mock.ts`. El test de 
 - Stock por sucursal con círculos de color: verde más de 5, amarillo entre 1 y 5, rojo sin stock. Más de 9 se muestra como "+9".
 - Layout mobile first: la cajita se apila en celular y se vuelve fila con columnas (foto, descripción, modelo, equivalentes) en pantallas grandes, como en lupa-web.
 - Fotos: si el artículo no tiene URL o la imagen falla al cargar, `ArticlePhoto` muestra el logo del cliente.
+- Carrito (`src/cart/`): botón "agregar" en cada equivalente, contador en el header y panel lateral con cantidades y total. Se persiste en `sessionStorage`. El envío del pedido todavía no existe.
+- Las columnas de la cabecera y de las cards comparten las grillas de `src/components/catalog/columns.ts`, así los títulos quedan alineados con el contenido.
 - Header con chips de secciones (`NavBar`). Las que todavía no existen (Pedidos, Ofertas, Favoritos, Mis vehículos, Cuenta corriente) se ven bloqueadas con candado y muestran "Próximamente" al pasar el mouse, enfocar o tocar. Para habilitar una, sacale `locked` en `NAV_ITEMS`.
 
 ## Tailwind y paleta

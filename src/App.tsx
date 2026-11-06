@@ -1,5 +1,6 @@
 import { AuthProvider } from './auth/AuthProvider'
 import { useAuth } from './auth/useAuth'
+import { CartProvider } from './cart/CartProvider'
 import { CatalogPage } from './pages/CatalogPage'
 import { LoginPage } from './pages/LoginPage'
 
@@ -11,7 +12,9 @@ function Routes() {
 export default function App() {
   return (
     <AuthProvider>
-      <Routes />
+      <CartProvider>
+        <Routes />
+      </CartProvider>
     </AuthProvider>
   )
 }
