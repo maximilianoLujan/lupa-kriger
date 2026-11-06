@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { env } from '../config/env'
+import { getHttp } from '../lib/http'
 import type { User } from '../types/user'
 import { ApiAuth } from './api'
 import { AuthContext } from './context'
@@ -13,7 +14,7 @@ interface AuthProviderProps {
 }
 
 function defaultApiAuth(): ApiAuth | null {
-  return env.dataSource === 'api' ? new ApiAuth(env.apiUrl) : null
+  return env.dataSource === 'api' ? new ApiAuth(getHttp()) : null
 }
 
 /** Login mock del MVP: usuarios de `credentials.ts`, con una demora para mostrar el estado de carga. */

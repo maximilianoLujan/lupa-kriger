@@ -1,4 +1,4 @@
-import { expireSession, readAccessToken } from '../../../auth/session'
+import type { AxiosInstance } from 'axios'
 import type {
   AlternativeArticle,
   CompatibleModel,
@@ -44,47 +44,29 @@ interface ApiWarehouse {
 }
 
 /**
- * Fuente real de datos: la API del ERP, con la sesión del usuario (Bearer).
+ * Fuente real de datos: la API del ERP. El token, el refresh y los errores
+ * los maneja el cliente HTTP (`src/lib/http.ts`); acá solo se traducen datos.
  *
- *   GET {baseUrl}/v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
- *   GET {baseUrl}/v1/lupa/warehouses                           → { items: [{ code, name }] }
+ *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
+ *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
  */
 export class ApiArticlesRepository implements ArticlesRepository {
-  private readonly baseUrl: string
-  private readonly fetchFn: typeof fetch
-  private readonly getToken: () => string | null
+  private readonly http: AxiosInstance
 
-  constructor(baseUrl: string, fetchFn: typeof fetch = fetch, getToken: () => string | null = readAccessToken) {
-    if (!baseUrl) throw new Error('ApiArticlesRepository necesita una URL base (VITE_API_URL)')
-    this.baseUrl = baseUrl
-    this.fetchFn = fetchFn
-    this.getToken = getToken
+  constructor(http: AxiosInstance) {
+    this.http = http
   }
 
   async search({ query, page, pageSize = DEFAULT_PAGE_SIZE }: SearchParams): Promise<SearchResponse> {
-    const params = new URLSearchParams({ q: query, page: String(page), pageSize: String(pageSize) })
-    const res = await this.get<ApiSearchResponse>(`/v1/lupa/articles/search?${params}`)
-    return { data: res.items.map(toProductBox), page: res.page, hasMore: res.hasMore, total: res.total }
+    const { data } = await this.http.get<ApiSearchResponse>('/v1/lupa/articles/search', {
+      params: { q: query, page, pageSize },
+    })
+    return { data: data.items.map(toProductBox), page: data.page, hasMore: data.hasMore, total: data.total }
   }
 
   async getWarehouses(): Promise<Warehouse[]> {
-    const res = await this.get<{ items: ApiWarehouse[] }>('/v1/lupa/warehouses')
-    return res.items.map((w) => ({ code: w.code, shortName: w.code, name: w.name }))
-  }
-
-  private async get<T>(path: string): Promise<T> {
-    const token = this.getToken()
-    const response = await this.fetchFn(`${this.baseUrl}${path}`, {
-      headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    })
-    if (response.status === 401) {
-      expireSession()
-      throw new Error('Tu sesión venció. Volvé a ingresar.')
-    }
-    if (!response.ok) {
-      throw new Error(`Error ${response.status} al llamar a ${path}`)
-    }
-    return response.json() as Promise<T>
+    const { data } = await this.http.get<{ items: ApiWarehouse[] }>('/v1/lupa/warehouses')
+    return data.items.map((w) => ({ code: w.code, shortName: w.code, name: w.name }))
   }
 }
 

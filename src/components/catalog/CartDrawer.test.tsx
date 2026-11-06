@@ -1,17 +1,20 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { useCartStore } from '../../cart/store'
 import { renderWithProviders } from '../../test/render'
+import type { AlternativeArticle } from '../../types/article'
 import { CartDrawer } from './CartDrawer'
 
+const base: AlternativeArticle = { articleCode: '', particularCode: '', description: '', brandCode: '', brandName: '', priceList: 0, stock: {} }
+
 function seed() {
-  sessionStorage.setItem(
-    'cart:items',
-    JSON.stringify([
-      { article: { articleCode: 'a', particularCode: 'FR-1', brandName: 'FRIC-ROT', priceList: 1000, stock: {} }, quantity: 2 },
-      { article: { articleCode: 'b', particularCode: 'HQF', brandName: 'FERODO', priceList: 500, stock: {} }, quantity: 1 },
-    ]),
-  )
+  useCartStore.setState({
+    items: [
+      { article: { ...base, articleCode: 'a', particularCode: 'FR-1', brandName: 'FRIC-ROT', priceList: 1000 }, quantity: 2 },
+      { article: { ...base, articleCode: 'b', particularCode: 'HQF', brandName: 'FERODO', priceList: 500 }, quantity: 1 },
+    ],
+  })
 }
 
 describe('CartDrawer', () => {
@@ -50,7 +53,6 @@ describe('CartDrawer', () => {
     await user.click(screen.getByRole('button', { name: 'Quitar FR-1' }))
     expect(screen.getByText('Todavía no agregaste repuestos.')).toBeInTheDocument()
 
-    sessionStorage.clear()
   })
 
   it('vaciar carrito saca todo', async () => {

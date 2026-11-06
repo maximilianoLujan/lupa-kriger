@@ -1,55 +1,45 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { bodyOf, fakeHttp, replyWith } from '../test/fakeHttp'
 import { ApiAuth } from './api'
 
-function fakeFetch(body: unknown, status = 200) {
-  return vi.fn(async () => ({ ok: status < 300, status, json: async () => body })) as unknown as typeof fetch
-}
-
 describe('ApiAuth', () => {
-  it('exige una URL base', () => {
-    expect(() => new ApiAuth('')).toThrow(/VITE_API_URL/)
-  })
-
   it('login válido devuelve usuario y tokens', async () => {
-    const fetchFn = fakeFetch({
+    const { http, calls } = replyWith(200, {
       accessToken: 'acc',
       refreshToken: 'ref',
       user: { id: 'u1', email: 'cliente@test.local', fullName: 'Gabriel Kriger' },
     })
-    const session = await new ApiAuth('https://api.test', fetchFn).login('  cliente@test.local ', 'secreto')
+
+    const session = await new ApiAuth(http).login('  cliente@test.local ', 'secreto')
 
     expect(session).toEqual({
       user: { username: 'cliente@test.local', name: 'Gabriel Kriger' },
       accessToken: 'acc',
       refreshToken: 'ref',
     })
-    expect(fetchFn).toHaveBeenCalledWith(
-      'https://api.test/v1/auth/login',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ email: 'cliente@test.local', password: 'secreto' }),
-      }),
-    )
+    expect(calls[0].method).toBe('post')
+    expect(calls[0].url).toBe('/v1/auth/login')
+    expect(bodyOf(calls[0])).toEqual({ email: 'cliente@test.local', password: 'secreto' })
   })
 
-  it('credenciales incorrectas devuelven null; otros errores lanzan', async () => {
-    expect(await new ApiAuth('https://api.test', fakeFetch(null, 401)).login('a', 'b')).toBeNull()
-    await expect(new ApiAuth('https://api.test', fakeFetch(null, 503)).login('a', 'b')).rejects.toThrow(/503/)
+  it('credenciales incorrectas devuelven null sin tocar la sesión; otros errores lanzan', async () => {
+    sessionStorage.setItem('auth:user', JSON.stringify({ username: 'otro', name: 'Otro' }))
+    expect(await new ApiAuth(replyWith(401).http).login('a', 'b')).toBeNull()
+    expect(await new ApiAuth(replyWith(400).http).login('a', 'b')).toBeNull()
+    expect(sessionStorage.getItem('auth:user')).not.toBeNull()
+
+    await expect(new ApiAuth(replyWith(503).http).login('a', 'b')).rejects.toThrow(/503/)
   })
 
   it('logout revoca el refresh token y no lanza si la API falla', async () => {
-    const fetchFn = fakeFetch(null, 204)
-    await new ApiAuth('https://api.test', fetchFn).logout('ref')
-    expect(fetchFn).toHaveBeenCalledWith(
-      'https://api.test/v1/auth/logout',
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ refreshToken: 'ref' }) }),
-    )
+    const { http, calls } = replyWith(204)
+    await new ApiAuth(http).logout('ref')
+    expect(calls[0].url).toBe('/v1/auth/logout')
+    expect(bodyOf(calls[0])).toEqual({ refreshToken: 'ref' })
 
-    const failing = vi.fn(async () => {
-      throw new Error('red')
-    }) as unknown as typeof fetch
-    await expect(new ApiAuth('https://api.test', failing).logout('ref')).resolves.toBeUndefined()
-    await new ApiAuth('https://api.test', fetchFn).logout(undefined)
-    expect(fetchFn).toHaveBeenCalledTimes(1)
+    await expect(new ApiAuth(fakeHttp(() => ({ status: -1 })).http).logout('ref')).resolves.toBeUndefined()
+
+    await new ApiAuth(http).logout(undefined)
+    expect(calls).toHaveLength(1)
   })
 })

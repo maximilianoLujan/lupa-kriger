@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { useCart } from '../cart/useCart'
 import { ArticleCard } from '../components/catalog/ArticleCard'
@@ -11,7 +11,7 @@ import { Button } from '../components/ui/Button'
 import { articlesRepository, type ArticlesRepository } from '../data/articles'
 import { useArticlesSearch } from '../hooks/useArticlesSearch'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
-import type { Warehouse } from '../types/article'
+import { useWarehouses } from '../hooks/useWarehouses'
 
 interface CatalogPageProps {
   /** Inyectable para tests. Por defecto usa el repositorio configurado por env. */
@@ -23,22 +23,12 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
   const { count } = useCart()
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query)
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [cartOpen, setCartOpen] = useState(false)
+  const warehouses = useWarehouses(repository)
   const { items, total, hasMore, loading, error, loadMore, retry } = useArticlesSearch(
     repository,
     debouncedQuery,
   )
-
-  useEffect(() => {
-    let cancelled = false
-    repository.getWarehouses().then((w) => {
-      if (!cancelled) setWarehouses(w)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [repository])
 
   const isEmpty = !loading && !error && items.length === 0
 

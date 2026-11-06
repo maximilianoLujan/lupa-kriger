@@ -1,40 +1,30 @@
-import { describe, expect, it, vi } from 'vitest'
-import { SESSION_EXPIRED_EVENT } from '../../../auth/session'
+import { describe, expect, it } from 'vitest'
+import { SESSION_EXPIRED_MESSAGE } from '../../../lib/http'
+import { fakeHttp, replyWith } from '../../../test/fakeHttp'
 import { ApiArticlesRepository } from './ApiArticlesRepository'
 
-function fakeFetch(body: unknown, ok = true, status = 200) {
-  return vi.fn(async () => ({ ok, status, json: async () => body })) as unknown as typeof fetch
-}
-
 const EMPTY = { items: [], page: 1, pageSize: 10, hasMore: false, total: 0 }
-const token = () => 'tok'
 
 describe('ApiArticlesRepository', () => {
-  it('exige una URL base', () => {
-    expect(() => new ApiArticlesRepository('')).toThrow(/VITE_API_URL/)
-  })
-
-  it('arma la URL de búsqueda con query, página y tamaño, y manda el token', async () => {
-    const fetchFn = fakeFetch({ ...EMPTY, page: 2 })
-    const repo = new ApiArticlesRepository('https://api.test', fetchFn, token)
+  it('arma la búsqueda con query, página y tamaño', async () => {
+    const { http, calls } = replyWith(200, { ...EMPTY, page: 2 })
+    const repo = new ApiArticlesRepository(http)
 
     const res = await repo.search({ query: 'bujia fiat', page: 2, pageSize: 5 })
 
     expect(res).toEqual({ data: [], page: 2, hasMore: false, total: 0 })
-    expect(fetchFn).toHaveBeenCalledWith(
-      'https://api.test/v1/lupa/articles/search?q=bujia+fiat&page=2&pageSize=5',
-      expect.objectContaining({ headers: { Accept: 'application/json', Authorization: 'Bearer tok' } }),
-    )
+    expect(calls[0].url).toBe('/v1/lupa/articles/search')
+    expect(calls[0].params).toEqual({ q: 'bujia fiat', page: 2, pageSize: 5 })
   })
 
   it('usa el tamaño de página por defecto', async () => {
-    const fetchFn = fakeFetch(EMPTY)
-    await new ApiArticlesRepository('https://api.test', fetchFn, token).search({ query: '', page: 1 })
-    expect(fetchFn).toHaveBeenCalledWith(expect.stringContaining('pageSize=10'), expect.anything())
+    const { http, calls } = replyWith(200, EMPTY)
+    await new ApiArticlesRepository(http).search({ query: '', page: 1 })
+    expect(calls[0].params).toMatchObject({ pageSize: 10 })
   })
 
   it('traduce las cajitas de la API a los tipos de la app', async () => {
-    const fetchFn = fakeFetch({
+    const { http } = replyWith(200, {
       ...EMPTY,
       total: 1,
       items: [
@@ -53,7 +43,7 @@ describe('ApiArticlesRepository', () => {
         },
       ],
     })
-    const res = await new ApiArticlesRepository('https://api.test', fetchFn, token).search({ query: 'filtro', page: 1 })
+    const res = await new ApiArticlesRepository(http).search({ query: 'filtro', page: 1 })
 
     expect(res.total).toBe(1)
     expect(res.data).toEqual([
@@ -74,28 +64,22 @@ describe('ApiArticlesRepository', () => {
   })
 
   it('pide las sucursales y usa el código como nombre corto', async () => {
-    const fetchFn = fakeFetch({ items: [{ code: 'GUA', name: 'Guatraché' }] })
-    const repo = new ApiArticlesRepository('https://api.test', fetchFn, token)
+    const { http, calls } = replyWith(200, { items: [{ code: 'GUA', name: 'Guatraché' }] })
+    const repo = new ApiArticlesRepository(http)
 
     expect(await repo.getWarehouses()).toEqual([{ code: 'GUA', shortName: 'GUA', name: 'Guatraché' }])
-    expect(fetchFn).toHaveBeenCalledWith('https://api.test/v1/lupa/warehouses', expect.anything())
+    expect(calls[0].url).toBe('/v1/lupa/warehouses')
   })
 
-  it('lanza error con el status cuando la respuesta no es ok', async () => {
-    const repo = new ApiArticlesRepository('https://api.test', fakeFetch(null, false, 500), token)
-    await expect(repo.getWarehouses()).rejects.toThrow(/500/)
+  it('propaga los errores del cliente HTTP con status y mensaje', async () => {
+    await expect(new ApiArticlesRepository(replyWith(500).http).getWarehouses()).rejects.toMatchObject({ status: 500 })
   })
 
-  it('con 401 cierra la sesión y avisa', async () => {
+  it('con 401 sin posibilidad de renovar, el cliente cierra la sesión', async () => {
     sessionStorage.setItem('auth:user', JSON.stringify({ username: 'a', name: 'A' }))
-    const expired = vi.fn()
-    window.addEventListener(SESSION_EXPIRED_EVENT, expired)
-    const repo = new ApiArticlesRepository('https://api.test', fakeFetch(null, false, 401), token)
+    const repo = new ApiArticlesRepository(fakeHttp(() => ({ status: 401 })).http)
 
-    await expect(repo.getWarehouses()).rejects.toThrow(/sesión venció/)
-
+    await expect(repo.getWarehouses()).rejects.toThrow(SESSION_EXPIRED_MESSAGE)
     expect(sessionStorage.getItem('auth:user')).toBeNull()
-    expect(expired).toHaveBeenCalled()
-    window.removeEventListener(SESSION_EXPIRED_EVENT, expired)
   })
 })

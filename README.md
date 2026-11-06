@@ -11,6 +11,9 @@ MVP de un catálogo de repuestos de autos. Base limpia con React + TypeScript + 
 | Vite | 8 | Dev server y build |
 | Tailwind CSS | 4 | Estilos (plugin oficial de Vite, sin `tailwind.config`) |
 | oxlint | 1 | Lint rápido |
+| TanStack Query | 5 | Datos del servidor: caché, paginado, reintentos |
+| Axios | 1 | Cliente HTTP con interceptores (token, refresh, errores) |
+| Zustand | 5 | Estado global del front (carrito) |
 | Vitest | 5 | Tests unitarios y de componentes (jsdom + Testing Library) |
 
 ## Requisitos
@@ -121,6 +124,28 @@ Las fotos todavía no se muestran (la API las sirve con sesión): queda el logo 
 ### Agregar artículos al mock
 
 Sumá objetos al array de `src/data/articles/mock/articles.mock.ts`. El test de datos verifica que no haya códigos repetidos y que cada equivalente tenga stock para todas las sucursales de `warehouses.mock.ts`.
+
+## Peticiones y estado
+
+Tres capas, cada una con una sola responsabilidad:
+
+| Capa | Dónde | Qué hace |
+|---|---|---|
+| Cliente HTTP | `src/lib/http.ts` | Instancia de Axios con `VITE_API_URL`. Manda `Authorization: Bearer` con el token de la sesión. Ante un 401 llama a `POST /v1/auth/refresh` una sola vez (aunque fallen varias peticiones a la vez), guarda los tokens nuevos y repite la petición. Si no puede renovar, cierra la sesión y la app vuelve al login. Todo error llega como `ApiError` con `status` y mensaje legible (`status` 0 es red caída). |
+| Repositorios | `src/data/articles/` y `src/auth/api.ts` | Traducen el contrato del ERP a los tipos de la app. No saben de tokens ni de errores: eso lo hace el cliente. |
+| Hooks de datos | `src/hooks/` | TanStack Query. `useArticlesSearch` es un `useInfiniteQuery` por texto buscado (cada búsqueda queda cacheada, "Cargar más" trae la página siguiente). `useWarehouses` es un `useQuery` que se pide una vez por sesión. Las claves están en `queryKeys.ts`. |
+
+El `QueryClient` de la app (`src/lib/queryClient.ts`) reintenta una vez los errores de red o de servidor y nunca los 4xx. En desarrollo aparecen las devtools de Query abajo a la izquierda.
+
+Para agregar un endpoint nuevo: sumá el método al repositorio, un hook con `useQuery` o `useMutation` y su clave en `queryKeys.ts`. Las peticiones que no deben renovar sesión ante 401 (login, refresh, logout) llevan `skipAuthRefresh: true`.
+
+### Estado global
+
+El carrito es un store de Zustand (`src/cart/store.ts`) persistido en `sessionStorage`. Los componentes usan `useCart()`, que expone items, totales y acciones. Si hace falta otro estado global (preferencias, filtros), va en otro store, no en contexto.
+
+### Tests de peticiones
+
+`src/test/fakeHttp.ts` crea el cliente real con un adapter falso: el handler decide qué responde cada petición y se puede asertar URL, headers y body. Así se prueban los interceptores sin red.
 
 ## Catálogo
 
