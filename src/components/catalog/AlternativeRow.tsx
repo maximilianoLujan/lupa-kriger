@@ -39,7 +39,7 @@ export function AlternativeRow({ article, warehouses, query }: AlternativeRowPro
         ))}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-center">
         <AddToCartButton article={article} />
       </div>
     </li>
