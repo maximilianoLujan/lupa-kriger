@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { storeCredentials } from '../auth/credentialManager'
 import { useAuth } from '../auth/useAuth'
 import { Logo } from '../components/Logo'
 import { Button } from '../components/ui/Button'
@@ -17,10 +18,17 @@ export function LoginPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    // Si estaba visible, vuelve a type="password": así el navegador reconoce el campo al guardar.
+    setShowPassword(false)
     setLoading(true)
     const ok = await login(username, password)
-    setLoading(false)
-    if (!ok) setError('Usuario o contraseña incorrectos.')
+    if (!ok) {
+      setLoading(false)
+      setError('Usuario o contraseña incorrectos.')
+      return
+    }
+    // Login correcto: el navegador ofrece guardar las credenciales (Chrome/Edge). La página cambia sola al catálogo.
+    await storeCredentials(username.trim(), password)
   }
 
   return (

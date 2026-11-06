@@ -87,6 +87,11 @@ responde 401 (sesión vencida), la app vuelve sola al login.
 La sesión (usuario y tokens) se guarda en `sessionStorage` y se pierde al cerrar la pestaña. `useAuth()` expone
 `user`, `login()` y `logout()` para cualquier componente dentro de `<AuthProvider>`.
 
+**Gestor de contraseñas del navegador:** los campos llevan `autocomplete="username"` y `"current-password"`, y tras
+un login correcto `LoginPage` llama a `navigator.credentials.store` (`src/auth/credentialManager.ts`), así Chrome y
+Edge ofrecen guardar usuario y contraseña y después los autocompletan. Solo funciona con HTTPS (o `localhost`). En
+Firefox y Safari no existe esa API: dependen de la detección automática del formulario.
+
 ## Fuente de datos: mock o API
 
 La UI nunca habla con la API directamente. Pasa por `ArticlesRepository` (`src/data/articles/repository.ts`), una interfaz con dos implementaciones:
