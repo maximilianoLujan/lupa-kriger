@@ -68,15 +68,21 @@ La app queda en `http://localhost:5173`.
     └── test/             # Setup de Vitest y helpers de render
 ```
 
-## Autenticación (mock)
+## Autenticación
 
-El login es solo de frontend para el MVP. Las credenciales viven en `src/auth/credentials.ts`:
+Con `VITE_DATA_SOURCE=mock` el login es solo de frontend. Las credenciales viven en `src/auth/credentials.ts`:
 
 | Usuario | Contraseña |
 |---|---|
 | `123` | `123` |
 
-La sesión se guarda en `sessionStorage` y se pierde al cerrar la pestaña. `useAuth()` expone `user`, `login()` y `logout()` para cualquier componente dentro de `<AuthProvider>`. Cuando exista backend, reemplazá `authenticate()` por la llamada real y el resto queda igual.
+Con `VITE_DATA_SOURCE=api` el login va contra el ERP (`POST /v1/auth/login`, `src/auth/api.ts`): el usuario es el
+email de un miembro de la empresa cuyo rol tenga el permiso **Lupa › Consultar artículos** (`lupa.articles.read`) y
+nada más. La API devuelve los tokens; el de acceso viaja como `Authorization: Bearer` en cada búsqueda. Si la API
+responde 401 (sesión vencida), la app vuelve sola al login.
+
+La sesión (usuario y tokens) se guarda en `sessionStorage` y se pierde al cerrar la pestaña. `useAuth()` expone
+`user`, `login()` y `logout()` para cualquier componente dentro de `<AuthProvider>`.
 
 ## Fuente de datos: mock o API
 
@@ -98,12 +104,19 @@ VITE_API_URL=http://localhost:3000
 
 ### Contrato de la API
 
+Es el módulo **Lupa** del ERP (ADR-0255 del repo del ERP), con la sesión del usuario:
+
 ```
-GET {VITE_API_URL}/articles/search?q=&page=&pageSize=   → SearchResponse
-GET {VITE_API_URL}/warehouses                            → Warehouse[]
+GET {VITE_API_URL}/v1/lupa/articles/search?q=&page=&pageSize=   → { items, page, pageSize, hasMore, total }
+GET {VITE_API_URL}/v1/lupa/warehouses                            → { items: [{ code, name }] }
 ```
 
-Los tipos están en `src/types/article.ts`. La forma sigue a la de lupa-web: cada resultado es una "cajita" (`ProductBox`) con el artículo cabecera, sus líneas descriptivas, los modelos de auto compatibles y la lista de equivalentes (`AlternativeArticle`) con marca, código de fabricante, precio y stock por sucursal.
+Cada ítem es una "cajita": el artículo que coincidió (`code`), el nombre de su grupo de equivalencia (`name`), líneas
+descriptivas (`details`), la unión de modelos compatibles de Repuestos (`compatibleModels`) y las `alternatives` (el
+artículo y sus equivalentes activos) con `brandName`, `oemCodes`, `price` (con IVA, lista por defecto; string decimal)
+y `stock` por código de depósito (string decimal). `ApiArticlesRepository` traduce eso a los tipos de la app
+(`src/types/article.ts`): `price` → `priceList` (número), `stock` → números, `make` → `brandName`, años → `since`/`until`.
+Las fotos todavía no se muestran (la API las sirve con sesión): queda el logo del cliente.
 
 ### Agregar artículos al mock
 
