@@ -119,7 +119,11 @@ descriptivas (`details`), la unión de modelos compatibles de Repuestos (`compat
 artículo y sus equivalentes activos) con `brandName`, `oemCodes`, `price` (con IVA, lista por defecto; string decimal)
 y `stock` por código de depósito (string decimal). `ApiArticlesRepository` traduce eso a los tipos de la app
 (`src/types/article.ts`): `price` → `priceList` (número), `stock` → números, `make` → `brandName`, años → `since`/`until`.
-Las fotos todavía no se muestran (la API las sirve con sesión): queda el logo del cliente.
+
+**Fotos:** cada cajita trae `photoUrl`, una ruta firmada relativa a la API (`/v1/public/lupa/photos?token=…`) que vale
+un día y que el navegador carga sin token de sesión (ADR-0257 del ERP). El repositorio la vuelve absoluta con la base del
+cliente HTTP y le agrega `variant=thumb` para pedir la miniatura (si no hay, la API manda la original). Sin `photoUrl`, o
+si la imagen falla (ruta vencida, por ejemplo), `ArticlePhoto` muestra el logo del cliente.
 
 ### Agregar artículos al mock
 

@@ -23,6 +23,7 @@ interface ApiAlternative {
   oemCodes: string[]
   price: string | null
   stock: Record<string, string>
+  photoUrl: string | null
 }
 interface ApiBox {
   code: string
@@ -30,6 +31,8 @@ interface ApiBox {
   details: string[]
   compatibleModels: ApiCompatibleModel[]
   alternatives: ApiAlternative[]
+  /** Ruta firmada relativa a la API (`/v1/public/lupa/photos?token=…`), válida un día y sin sesión. */
+  photoUrl: string | null
 }
 interface ApiSearchResponse {
   items: ApiBox[]
@@ -49,6 +52,8 @@ interface ApiWarehouse {
  *
  *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
  *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
+ *   GET /v1/public/lupa/photos?token=…&variant=thumb  → la foto (ruta firmada que viene en `photoUrl`; el navegador
+ *                                                        la carga sin token de sesión)
  */
 export class ApiArticlesRepository implements ArticlesRepository {
   private readonly http: AxiosInstance
@@ -61,7 +66,13 @@ export class ApiArticlesRepository implements ArticlesRepository {
     const { data } = await this.http.get<ApiSearchResponse>('/v1/lupa/articles/search', {
       params: { q: query, page, pageSize },
     })
-    return { data: data.items.map(toProductBox), page: data.page, hasMore: data.hasMore, total: data.total }
+    const baseUrl = this.http.defaults.baseURL ?? ''
+    return {
+      data: data.items.map((box) => toProductBox(box, baseUrl)),
+      page: data.page,
+      hasMore: data.hasMore,
+      total: data.total,
+    }
   }
 
   async getWarehouses(): Promise<Warehouse[]> {
@@ -70,14 +81,26 @@ export class ApiArticlesRepository implements ArticlesRepository {
   }
 }
 
-function toProductBox(box: ApiBox): ProductBox {
+function toProductBox(box: ApiBox, baseUrl: string): ProductBox {
+  const photoUrl = photoSrc(baseUrl, box.photoUrl)
   return {
     articleCode: box.code,
     description: box.name,
     details: box.details,
     compatibleModels: box.compatibleModels.map(toCompatibleModel),
     alternatives: box.alternatives.map(toAlternative),
+    ...(photoUrl ? { photoUrl } : {}),
   }
+}
+
+/**
+ * URL absoluta de la miniatura: la API devuelve la ruta relativa y firmada; se le suma la base y `variant=thumb`
+ * (si el archivo no tiene miniatura, la API manda la foto original).
+ */
+export function photoSrc(baseUrl: string, path: string | null | undefined): string | undefined {
+  if (!path) return undefined
+  const separator = path.includes('?') ? '&' : '?'
+  return `${baseUrl.replace(/\/$/, '')}${path}${separator}variant=thumb`
 }
 
 function toCompatibleModel(m: ApiCompatibleModel): CompatibleModel {

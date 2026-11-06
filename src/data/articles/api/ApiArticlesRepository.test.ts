@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { SESSION_EXPIRED_MESSAGE } from '../../../lib/http'
 import { fakeHttp, replyWith } from '../../../test/fakeHttp'
-import { ApiArticlesRepository } from './ApiArticlesRepository'
+import { ApiArticlesRepository, photoSrc } from './ApiArticlesRepository'
 
 const EMPTY = { items: [], page: 1, pageSize: 10, hasMore: false, total: 0 }
 
@@ -37,9 +37,10 @@ describe('ApiArticlesRepository', () => {
             { make: 'Citroën', model: 'C3', yearFrom: null, yearTo: null },
           ],
           alternatives: [
-            { code: 'FR-100', name: 'Filtro Fram', brandName: 'Fram', oemCodes: [], price: '2420.00', stock: { GUA: '12.000' } },
-            { code: 'MN-200', name: 'Filtro Mann', brandName: null, oemCodes: [], price: null, stock: {} },
+            { code: 'FR-100', name: 'Filtro Fram', brandName: 'Fram', oemCodes: [], price: '2420.00', stock: { GUA: '12.000' }, photoUrl: '/v1/public/lupa/photos?token=abc.def' },
+            { code: 'MN-200', name: 'Filtro Mann', brandName: null, oemCodes: [], price: null, stock: {}, photoUrl: null },
           ],
+          photoUrl: '/v1/public/lupa/photos?token=abc.def',
         },
       ],
     })
@@ -59,8 +60,34 @@ describe('ApiArticlesRepository', () => {
           { articleCode: 'FR-100', particularCode: 'FR-100', description: 'Filtro Fram', brandCode: 'Fram', brandName: 'Fram', priceList: 2420, stock: { GUA: 12 } },
           { articleCode: 'MN-200', particularCode: 'MN-200', description: 'Filtro Mann', brandCode: '', brandName: '', priceList: 0, stock: {} },
         ],
+        // La ruta firmada se vuelve absoluta (base del cliente HTTP) y pide la miniatura.
+        photoUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def&variant=thumb',
       },
     ])
+  })
+
+  it('una cajita sin foto queda sin photoUrl (la UI muestra el logo)', async () => {
+    const { http } = replyWith(200, {
+      ...EMPTY,
+      total: 1,
+      items: [{ code: 'X', name: 'X', details: [], compatibleModels: [], alternatives: [], photoUrl: null }],
+    })
+    const res = await new ApiArticlesRepository(http).search({ query: 'x', page: 1 })
+    expect(res.data[0]).not.toHaveProperty('photoUrl')
+  })
+
+  describe('photoSrc', () => {
+    it('suma la base sin barra doble y el variant como parámetro extra', () => {
+      expect(photoSrc('https://api.test/', '/v1/public/lupa/photos?token=t')).toBe(
+        'https://api.test/v1/public/lupa/photos?token=t&variant=thumb',
+      )
+    })
+
+    it('usa ? si la ruta no tiene query y undefined sin ruta', () => {
+      expect(photoSrc('https://api.test', '/foto.jpg')).toBe('https://api.test/foto.jpg?variant=thumb')
+      expect(photoSrc('https://api.test', null)).toBeUndefined()
+      expect(photoSrc('https://api.test', '')).toBeUndefined()
+    })
   })
 
   it('pide las sucursales y usa el código como nombre corto', async () => {
