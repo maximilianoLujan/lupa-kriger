@@ -1,30 +1,30 @@
 @import "tailwindcss";
 
 /*
- * Paleta del proyecto: todo pastel, nada negro ni oscuro.
- * El texto usa `ink` (gris azulado medio), nunca negro.
+ * Paleta del proyecto, tomada del logo: rojo + gris + blanco.
+ * El rojo del logo es el único acento. Los neutros son grises claros.
+ * Nada negro ni oscuro: el texto usa `ink` (gris medio), nunca negro.
  */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  /* Marca: rosa pastel derivado del rojo del logo */
-  --color-brand: #f7b2b7;
-  --color-brand-hover: #f29ea5;
-  --color-brand-soft: #fde4e6;
-  --color-brand-text: #c4606b;
+  /* Rojo del logo */
+  --color-brand: #e30613;
+  --color-brand-hover: #c9050f;
+  /* Tinte muy leve del rojo, solo para fondos de alerta y "sin stock" */
+  --color-brand-soft: #fdeeee;
+  /* Rojo para texto sobre fondo claro */
+  --color-brand-text: #c8101b;
 
-  /* Acentos pastel */
-  --color-sky: #d9e9fb;
+  /* Semáforo de stock */
   --color-mint: #d6f2e3;
   --color-butter: #fff3c4;
-  --color-lilac: #e8e1fa;
-  --color-peach: #ffe4d1;
 
-  /* Neutros */
-  --color-ink: #5c6676;
-  --color-ink-soft: #8d96a5;
-  --color-line: #e6e3ee;
-  --color-canvas: #faf8fd;
+  /* Neutros grises, sin tinte */
+  --color-ink: #555b64;
+  --color-ink-soft: #8a9099;
+  --color-line: #e4e5e9;
+  --color-canvas: #f4f4f6;
 }
 
 @keyframes shake {

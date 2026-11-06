@@ -24,9 +24,9 @@ export function NavBar({ items = NAV_ITEMS, current = 'catalogo' }: NavBarProps)
                 href="#"
                 aria-current={item.key === current ? 'page' : undefined}
                 onClick={(e) => e.preventDefault()}
-                className="flex h-10 items-center gap-2 rounded-full bg-brand pr-4 pl-1.5 text-sm font-semibold text-brand-text shadow-sm shadow-brand/40"
+                className="flex h-10 items-center gap-2 rounded-full bg-brand pr-4 pl-1.5 text-sm font-semibold text-white shadow-sm shadow-brand/30"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/80">{item.icon}</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">{item.icon}</span>
                 {item.label}
               </a>
             </li>
@@ -62,7 +62,7 @@ function LockedChip({ item }: { item: NavItem }) {
           id={tooltipId}
           role="tooltip"
           data-open={open || undefined}
-          className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-1.5 rounded-full bg-brand-soft text-xs font-semibold text-brand-text transition group-hover:opacity-100 group-focus-within:opacity-100 ${
+          className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-1.5 rounded-full bg-brand text-xs font-semibold text-white transition group-hover:opacity-100 group-focus-within:opacity-100 ${
             open ? 'opacity-100' : 'opacity-0'
           }`}
         >

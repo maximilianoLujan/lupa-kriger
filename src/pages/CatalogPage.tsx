@@ -50,7 +50,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
             <Logo className="max-w-[8.5rem] sm:max-w-[10rem]" />
             <div className="flex items-center gap-2 text-sm">
               <span className="hidden items-center gap-2 rounded-full bg-canvas py-1.5 pr-4 pl-1.5 text-ink ring-1 ring-line sm:flex">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-brand-text">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
                   {initials(user?.name)}
                 </span>
                 {user?.name}
@@ -59,7 +59,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={count > 0 ? `Abrir carrito, ${count} unidades` : 'Abrir carrito'}
-                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-brand-text shadow-sm shadow-brand/40 transition hover:bg-brand-hover"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white shadow-sm shadow-brand/30 transition hover:bg-brand-hover"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
                   <circle cx="9" cy="20" r="1" />
@@ -126,7 +126,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
         )}
 
         {hasMore && !loading && (
-          <Button type="button" onClick={loadMore} className="bg-white text-ink ring-1 ring-line shadow-lilac hover:bg-canvas">
+          <Button type="button" onClick={loadMore} className="bg-white text-ink shadow-none ring-1 ring-line hover:bg-canvas">
             Cargar más
           </Button>
         )}

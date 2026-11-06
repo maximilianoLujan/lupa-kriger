@@ -5,7 +5,7 @@ interface AddToCartButtonProps {
   article: AlternativeArticle
 }
 
-/** Botón redondo "agregar al carrito". Si ya está en el carrito muestra la cantidad. */
+/** Botón redondo "agregar al carrito". Si ya está en el carrito se pinta de rojo y muestra la cantidad. */
 export function AddToCartButton({ article }: AddToCartButtonProps) {
   const { items, add } = useCart()
   const inCart = items.find((i) => i.article.articleCode === article.articleCode)?.quantity ?? 0
@@ -15,8 +15,10 @@ export function AddToCartButton({ article }: AddToCartButtonProps) {
       type="button"
       onClick={() => add(article)}
       aria-label={`Agregar ${article.brandName} ${article.particularCode} al carrito`}
-      className={`relative flex h-10 w-10 items-center justify-center rounded-full transition active:scale-95 focus-visible:ring-4 focus-visible:ring-brand/40 focus-visible:outline-none ${
-        inCart ? 'bg-brand text-brand-text' : 'bg-brand-soft text-brand-text hover:bg-brand'
+      className={`relative flex h-10 w-10 items-center justify-center rounded-full transition active:scale-95 focus-visible:ring-4 focus-visible:ring-brand/30 focus-visible:outline-none ${
+        inCart
+          ? 'bg-brand text-white'
+          : 'bg-white text-brand ring-1 ring-brand/50 hover:bg-brand hover:text-white hover:ring-brand'
       }`}
     >
       <svg

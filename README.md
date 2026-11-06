@@ -122,19 +122,19 @@ Sumá objetos al array de `src/data/articles/mock/articles.mock.ts`. El test de 
 
 ## Tailwind y paleta
 
-**Regla del repo: nada negro ni oscuro, todo pastel.** Tailwind 4 se configura desde CSS. Los únicos colores permitidos son los tokens del bloque `@theme` de `src/index.css`:
+**Regla del repo: la paleta sale del logo (rojo + gris + blanco), nada negro ni oscuro, nada rosa.** Tailwind 4 se configura desde CSS. Los únicos colores permitidos son los tokens del bloque `@theme` de `src/index.css`:
 
 | Token | Valor | Uso |
 |---|---|---|
-| `brand` | `#f7b2b7` | Rosa pastel: botones, chip activo |
-| `brand-hover` | `#f29ea5` | Hover de botones |
-| `brand-soft` | `#fde4e6` | Fondos de alerta, sin stock |
-| `brand-text` | `#c4606b` | Precios y textos de marca sobre fondo claro |
-| `sky` `mint` `butter` `lilac` `peach` | pastel | Acentos: stock, cabeceras, tooltips, íconos |
-| `ink` | `#5c6676` | Texto principal (gris azulado medio, no negro) |
-| `ink-soft` | `#8d96a5` | Texto secundario |
-| `line` | `#e6e3ee` | Bordes y divisores |
-| `canvas` | `#faf8fd` | Fondo de página |
+| `brand` | `#e30613` | Rojo del logo: botones, chip activo, carrito, panel del login |
+| `brand-hover` | `#c9050f` | Hover de botones |
+| `brand-soft` | `#fdeeee` | Tinte leve del rojo, solo para alertas y "sin stock" |
+| `brand-text` | `#c8101b` | Rojo para texto sobre fondo claro |
+| `mint` `butter` | pastel | Semáforo de stock (con y poco stock) |
+| `ink` | `#555b64` | Texto principal (gris medio, no negro) |
+| `ink-soft` | `#8a9099` | Texto secundario |
+| `line` | `#e4e5e9` | Bordes y divisores |
+| `canvas` | `#f4f4f6` | Fondo de página y cabecera de columnas |
 
 No usar `black`, `gray-700+`, `slate-800+` ni clases `*-900`. Para agregar un color, sumá un token pastel al `@theme`.
 

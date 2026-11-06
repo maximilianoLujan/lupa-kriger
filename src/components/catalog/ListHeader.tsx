@@ -26,7 +26,7 @@ export function ListHeader({ warehouses }: ListHeaderProps) {
   )
 
   return (
-    <div className="rounded-2xl bg-brand-soft px-3 py-2 text-[11px] font-semibold tracking-wide text-ink sm:px-4">
+    <div className="rounded-2xl bg-canvas px-3 py-2 text-[11px] font-semibold tracking-wide text-ink ring-1 ring-line sm:px-4">
       <div className="lg:hidden">{alternativesHeader}</div>
       <div className={`hidden ${CARD_GRID}`}>
         <span>FOTO</span>

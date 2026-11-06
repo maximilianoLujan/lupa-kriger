@@ -30,7 +30,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-title"
-        className="relative flex h-full w-full max-w-md flex-col bg-white shadow-2xl shadow-lilac"
+        className="relative flex h-full w-full max-w-md flex-col bg-white shadow-2xl"
       >
         <header className="flex items-center justify-between border-b border-line px-4 py-3">
           <h2 id="cart-title" className="text-lg font-bold text-ink">
