@@ -114,20 +114,26 @@ Sumá objetos al array de `src/data/articles/mock/articles.mock.ts`. El test de 
 - Paginado con botón "Cargar más".
 - Stock por sucursal con círculos de color: verde más de 5, amarillo entre 1 y 5, rojo sin stock. Más de 9 se muestra como "+9".
 - Layout mobile first: la cajita se apila en celular y se vuelve fila con columnas (foto, descripción, modelo, equivalentes) en pantallas grandes, como en lupa-web.
+- Fotos: si el artículo no tiene URL o la imagen falla al cargar, `ArticlePhoto` muestra el logo del cliente.
+- Header con chips de secciones (`NavBar`). Las que todavía no existen (Pedidos, Ofertas, Favoritos, Mis vehículos, Cuenta corriente) se ven bloqueadas con candado y muestran "Próximamente" al pasar el mouse, enfocar o tocar. Para habilitar una, sacale `locked` en `NAV_ITEMS`.
 
-## Tailwind
+## Tailwind y paleta
 
-Tailwind 4 se configura desde CSS, no desde un archivo JS. El tema de marca ya está definido en `src/index.css`, tomado del logo del cliente:
+**Regla del repo: nada negro ni oscuro, todo pastel.** Tailwind 4 se configura desde CSS. Los únicos colores permitidos son los tokens del bloque `@theme` de `src/index.css`:
 
-| Token | Valor | Clase |
+| Token | Valor | Uso |
 |---|---|---|
-| `brand` | `#e30613` | `bg-brand`, `text-brand` |
-| `brand-dark` | `#b8000c` | hover de botones |
-| `brand-light` | `#fdeaec` | fondos de alerta |
-| `ink` | `#3d3d3d` | texto y bordes oscuros |
-| `ink-dark` | `#2a2a2a` | paneles oscuros |
+| `brand` | `#f7b2b7` | Rosa pastel: botones, chip activo |
+| `brand-hover` | `#f29ea5` | Hover de botones |
+| `brand-soft` | `#fde4e6` | Fondos de alerta, sin stock |
+| `brand-text` | `#c4606b` | Precios y textos de marca sobre fondo claro |
+| `sky` `mint` `butter` `lilac` `peach` | pastel | Acentos: stock, cabeceras, tooltips, íconos |
+| `ink` | `#5c6676` | Texto principal (gris azulado medio, no negro) |
+| `ink-soft` | `#8d96a5` | Texto secundario |
+| `line` | `#e6e3ee` | Bordes y divisores |
+| `canvas` | `#faf8fd` | Fondo de página |
 
-Para agregar más tokens, sumalos al bloque `@theme` del mismo archivo.
+No usar `black`, `gray-700+`, `slate-800+` ni clases `*-900`. Para agregar un color, sumá un token pastel al `@theme`.
 
 ## Alcance del MVP
 
@@ -151,7 +157,8 @@ Cada feature se entrega con sus tests al lado del archivo que prueba (`Foo.tsx` 
 
 - Componentes en PascalCase, un componente por archivo.
 - Tipos del dominio en `src/types/`, nunca inline en componentes.
-- Estilos solo con clases de Tailwind. Si algo se repite mucho, se vuelve componente, no clase CSS custom.
+- Estilos solo con clases de Tailwind y los tokens pastel del tema. Si algo se repite mucho, se vuelve componente, no clase CSS custom.
+- Sin colores negros ni oscuros. Ver "Tailwind y paleta".
 - Sin estado global más allá del contexto de auth. `useState` y props alcanzan para el MVP.
 - Mobile first: escribí las clases base para celular y agregá `sm:`, `lg:` para pantallas más grandes.
 - Todo cambio se commitea y pushea a `main`. No hay ambiente productivo todavía.

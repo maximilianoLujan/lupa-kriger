@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import logo from '../../assets/logo.jpg'
 import type { ProductBox, Warehouse } from '../../types/article'
 import { yearRange } from '../../utils/yearRange'
 import { ArticleCard } from './ArticleCard'
@@ -70,9 +71,9 @@ describe('ArticleCard', () => {
     expect(marks).toEqual(expect.arrayContaining(['FRENO', 'GOL', 'COBREQ']))
   })
 
-  it('muestra la foto cuando hay URL y un placeholder cuando no', () => {
+  it('muestra la foto cuando hay URL y el logo cuando no', () => {
     const { rerender } = render(<ArticleCard box={box} warehouses={warehouses} query="" />)
-    expect(screen.queryByRole('img', { name: 'PASTILLA DE FRENO' })).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'PASTILLA DE FRENO' })).toHaveAttribute('src', logo)
 
     rerender(<ArticleCard box={{ ...box, photoUrl: '/foto.jpg' }} warehouses={warehouses} query="" />)
     expect(screen.getByRole('img', { name: 'PASTILLA DE FRENO' })).toHaveAttribute('src', '/foto.jpg')

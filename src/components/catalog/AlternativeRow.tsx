@@ -14,20 +14,20 @@ export function AlternativeRow({ article, warehouses, query }: AlternativeRowPro
   return (
     <li className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-2">
       <div className="min-w-0" title={article.description}>
-        <p className="truncate text-sm font-semibold text-ink-dark">
+        <p className="truncate text-sm font-semibold text-ink">
           <Highlight text={article.brandName} query={query} />
           {article.isOutlet && (
-            <span className="ml-2 rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-dark uppercase">
+            <span className="ml-2 rounded-full bg-peach px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-text uppercase">
               Outlet
             </span>
           )}
         </p>
-        <p className="truncate text-xs text-gray-500">
+        <p className="truncate text-xs text-ink-soft">
           <Highlight text={article.particularCode} query={query} />
         </p>
       </div>
 
-      <p className="text-right text-sm font-bold whitespace-nowrap text-brand-dark tabular-nums">
+      <p className="text-right text-sm font-bold whitespace-nowrap text-brand-text tabular-nums">
         $ {formatPrice(article.priceList)}
       </p>
 

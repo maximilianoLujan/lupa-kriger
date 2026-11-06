@@ -4,12 +4,12 @@ interface ListHeaderProps {
   warehouses: Warehouse[]
 }
 
-/** Barra oscura con los títulos de columna, como en lupa-web. En mobile muestra solo las que aplican. */
+/** Barra con los títulos de columna. En mobile muestra solo las que aplican. */
 export function ListHeader({ warehouses }: ListHeaderProps) {
   const stockLabels = (
     <span className="flex flex-col items-center">
       <span>STOCK</span>
-      <span className="flex gap-1.5 text-[9px] font-normal text-white/70">
+      <span className="flex gap-1.5 text-[9px] font-normal text-ink-soft">
         {warehouses.map((w) => (
           <span key={w.code} className="w-7 text-center">
             {w.shortName}
@@ -20,7 +20,7 @@ export function ListHeader({ warehouses }: ListHeaderProps) {
   )
 
   return (
-    <div className="rounded-xl bg-ink-dark px-3 py-2 text-[11px] font-semibold tracking-wide text-white sm:px-4">
+    <div className="rounded-xl bg-lilac px-3 py-2 text-[11px] font-semibold tracking-wide text-ink sm:px-4">
       <div className="flex items-center justify-between lg:hidden">
         <span>MARCA</span>
         <span className="flex items-center gap-4">

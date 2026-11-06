@@ -15,10 +15,10 @@ export function Input({ label, trailing, invalid = false, className = '', ...res
         <input
           id={id}
           aria-invalid={invalid || undefined}
-          className={`h-12 w-full rounded-xl border bg-white px-4 text-base text-ink-dark placeholder:text-gray-400 transition focus:outline-none focus:ring-4 ${
+          className={`h-12 w-full rounded-xl border bg-white px-4 text-base text-ink transition placeholder:text-ink-soft focus:ring-4 focus:outline-none ${
             invalid
-              ? 'border-brand focus:border-brand focus:ring-brand/20'
-              : 'border-gray-300 focus:border-ink focus:ring-ink/10'
+              ? 'border-brand-text focus:border-brand-text focus:ring-brand/40'
+              : 'border-line focus:border-brand focus:ring-brand/30'
           } ${trailing ? 'pr-12' : ''} ${className}`}
           {...rest}
         />

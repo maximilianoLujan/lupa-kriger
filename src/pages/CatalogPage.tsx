@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../auth/useAuth'
 import { ArticleCard } from '../components/catalog/ArticleCard'
 import { ListHeader } from '../components/catalog/ListHeader'
+import { NavBar } from '../components/catalog/NavBar'
 import { SearchBar } from '../components/catalog/SearchBar'
 import { Logo } from '../components/Logo'
 import { Button } from '../components/ui/Button'
@@ -38,28 +39,36 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
   const isEmpty = !loading && !error && items.length === 0
 
   return (
-    <div className="min-h-dvh bg-gray-100">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2">
-          <Logo className="max-w-[8.5rem] sm:max-w-[10rem]" />
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-gray-600 sm:inline">{user?.name}</span>
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 font-medium text-ink transition hover:border-ink"
-            >
-              Salir
-            </button>
+    <div className="min-h-dvh bg-canvas">
+      <header className="sticky top-0 z-20 border-b border-line bg-gradient-to-r from-brand-soft via-white to-sky">
+        <div className="mx-auto max-w-6xl space-y-3 px-4 pt-3 pb-3">
+          <div className="flex items-center justify-between gap-4">
+            <Logo className="max-w-[8.5rem] sm:max-w-[10rem]" />
+            <div className="flex items-center gap-2 text-sm">
+              <span className="hidden items-center gap-2 rounded-full bg-white/80 py-1.5 pr-4 pl-1.5 text-ink ring-1 ring-line sm:flex">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-brand-text">
+                  {initials(user?.name)}
+                </span>
+                {user?.name}
+              </span>
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-full bg-white/80 px-4 py-1.5 font-medium text-ink ring-1 ring-line transition hover:bg-white hover:ring-brand"
+              >
+                Salir
+              </button>
+            </div>
           </div>
-        </div>
-        <div className="mx-auto max-w-6xl px-4 pb-3">
+
+          <NavBar />
+
           <SearchBar value={query} onChange={setQuery} />
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl space-y-3 px-4 py-4">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-ink-soft">
           <span aria-live="polite">
             {loading && items.length === 0
               ? 'Buscando…'
@@ -75,12 +84,12 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
 
         {loading && (
           <div className="flex justify-center py-6" role="status" aria-label="Cargando">
-            <span className="h-7 w-7 animate-spin rounded-full border-2 border-gray-300 border-t-brand" />
+            <span className="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-brand" />
           </div>
         )}
 
         {error && (
-          <div className="rounded-2xl bg-brand-light p-4 text-center text-sm text-brand-dark">
+          <div className="rounded-2xl bg-brand-soft p-4 text-center text-sm text-brand-text">
             <p role="alert">{error}</p>
             <Button type="button" onClick={retry} className="mt-3 h-10 w-auto px-6">
               Reintentar
@@ -89,18 +98,28 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
         )}
 
         {isEmpty && (
-          <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-gray-200">
-            <p className="font-semibold text-ink-dark">No se encontraron repuestos</p>
-            <p className="mt-1 text-sm text-gray-500">Probá con otra palabra, un código o un modelo de auto.</p>
+          <div className="rounded-2xl bg-white p-8 text-center ring-1 ring-line">
+            <p className="font-semibold text-ink">No se encontraron repuestos</p>
+            <p className="mt-1 text-sm text-ink-soft">Probá con otra palabra, un código o un modelo de auto.</p>
           </div>
         )}
 
         {hasMore && !loading && (
-          <Button type="button" onClick={loadMore} className="bg-ink hover:bg-ink-dark shadow-ink/20">
+          <Button type="button" onClick={loadMore} className="bg-sky shadow-sky hover:bg-lilac">
             Cargar más
           </Button>
         )}
       </main>
     </div>
   )
+}
+
+function initials(name?: string) {
+  if (!name) return '?'
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join('')
 }

@@ -68,9 +68,17 @@ describe('CatalogPage', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
-  it('muestra el nombre del usuario y permite salir', async () => {
+  it('muestra las secciones bloqueadas con "Próximamente"', async () => {
+    await setup()
+    expect(screen.getByRole('link', { name: 'Catálogo' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getAllByRole('tooltip').length).toBeGreaterThanOrEqual(3)
+    expect(screen.getByRole('button', { name: 'Pedidos' })).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('muestra el nombre del usuario con iniciales y permite salir', async () => {
     const { user } = await setup()
     expect(screen.getByText('Gabriel Kriger')).toBeInTheDocument()
+    expect(screen.getByText('GK')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Salir' }))
     expect(sessionStorage.getItem('auth:user')).toBeNull()
   })

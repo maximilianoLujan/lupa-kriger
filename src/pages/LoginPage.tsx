@@ -24,12 +24,12 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-gray-100 lg:flex-row">
+    <div className="flex min-h-dvh flex-col bg-canvas lg:flex-row">
       {/* Panel de marca: franja arriba en mobile, columna izquierda en desktop */}
-      <aside className="relative overflow-hidden bg-ink-dark px-6 pt-10 pb-16 text-white lg:flex lg:w-1/2 lg:flex-col lg:justify-center lg:gap-14 lg:px-16 lg:py-14">
+      <aside className="relative overflow-hidden bg-gradient-to-br from-brand-soft via-lilac to-sky px-6 pt-10 pb-16 text-ink lg:flex lg:w-1/2 lg:flex-col lg:justify-center lg:gap-14 lg:px-16 lg:py-14">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          className="pointer-events-none absolute inset-0 opacity-40"
           style={{
             backgroundImage:
               'repeating-linear-gradient(-60deg, #fff 0 14px, transparent 14px 40px)',
@@ -37,21 +37,25 @@ export function LoginPage() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-brand opacity-50 blur-3xl lg:h-[28rem] lg:w-[28rem]"
+          className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-brand opacity-60 blur-3xl lg:h-[28rem] lg:w-[28rem]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-mint opacity-70 blur-3xl"
         />
 
-        <div className="relative mx-auto w-full max-w-xs rounded-2xl bg-white p-4 shadow-2xl lg:mx-0 lg:max-w-sm lg:p-6">
+        <div className="relative mx-auto w-full max-w-xs rounded-2xl bg-white p-4 shadow-xl shadow-brand/30 lg:mx-0 lg:max-w-sm lg:p-6">
           <Logo />
         </div>
 
         <div className="relative mt-8 lg:mt-0">
-          <p className="text-xs font-semibold tracking-[0.2em] text-brand uppercase">
+          <p className="text-xs font-semibold tracking-[0.2em] text-brand-text uppercase">
             Catálogo de repuestos
           </p>
           <h1 className="mt-2 text-2xl leading-tight font-bold lg:text-4xl">
             Encontrá el repuesto que buscás, al instante.
           </h1>
-          <p className="mt-3 max-w-md text-sm text-white/70 lg:text-base">
+          <p className="mt-3 max-w-md text-sm text-ink-soft lg:text-base">
             Buscá por marca, modelo o código. Stock y precios siempre actualizados.
           </p>
         </div>
@@ -62,14 +66,12 @@ export function LoginPage() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className={`w-full max-w-md rounded-3xl bg-white p-6 shadow-xl shadow-ink/10 sm:p-8 ${
+          className={`w-full max-w-md rounded-3xl bg-white p-6 shadow-xl shadow-lilac sm:p-8 ${
             error ? 'animate-shake' : ''
           }`}
         >
-          <h2 className="text-xl font-bold text-ink-dark sm:text-2xl">Ingresar</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Usá tu usuario y contraseña para continuar.
-          </p>
+          <h2 className="text-xl font-bold text-ink sm:text-2xl">Ingresar</h2>
+          <p className="mt-1 text-sm text-ink-soft">Usá tu usuario y contraseña para continuar.</p>
 
           <div className="mt-6 space-y-4">
             <Input
@@ -99,7 +101,7 @@ export function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  className="rounded-lg p-1.5 text-gray-400 transition hover:text-ink focus-visible:ring-2 focus-visible:ring-ink/20 focus-visible:outline-none"
+                  className="rounded-lg p-1.5 text-ink-soft transition hover:text-ink focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none"
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
@@ -110,7 +112,7 @@ export function LoginPage() {
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-xl bg-brand-light px-4 py-3 text-sm font-medium text-brand-dark"
+              className="mt-4 rounded-xl bg-brand-soft px-4 py-3 text-sm font-medium text-brand-text"
             >
               {error}
             </p>
@@ -120,7 +122,7 @@ export function LoginPage() {
             {loading ? 'Ingresando…' : 'Ingresar'}
           </Button>
 
-          <p className="mt-6 text-center text-xs text-gray-400">
+          <p className="mt-6 text-center text-xs text-ink-soft">
             © {YEAR} Repuestos Guatrache · Gabriel Kriger
           </p>
         </form>

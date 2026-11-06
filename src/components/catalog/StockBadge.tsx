@@ -5,12 +5,12 @@ interface StockBadgeProps {
 }
 
 function level(quantity: number) {
-  if (quantity > 5) return { classes: 'bg-emerald-100 text-emerald-900', label: quantity > 9 ? '+9' : String(quantity) }
-  if (quantity > 0) return { classes: 'bg-amber-100 text-amber-900', label: String(quantity) }
-  return { classes: 'bg-red-100 text-red-800', label: 'NO' }
+  if (quantity > 5) return { classes: 'bg-mint text-emerald-700', label: quantity > 9 ? '+9' : String(quantity) }
+  if (quantity > 0) return { classes: 'bg-butter text-amber-700', label: String(quantity) }
+  return { classes: 'bg-brand-soft text-brand-text', label: 'NO' }
 }
 
-/** Círculo de stock por sucursal, al estilo lupa-web: verde, amarillo o rojo. */
+/** Círculo de stock por sucursal: menta, manteca o rosa según cantidad. */
 export function StockBadge({ quantity, warehouse }: StockBadgeProps) {
   const { classes, label } = level(quantity)
   return (
