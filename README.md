@@ -54,14 +54,18 @@ La app queda en `http://localhost:5173`.
     ├── index.css         # Importa Tailwind + tema de marca (@theme)
     ├── assets/           # Logo del cliente
     ├── auth/             # Contexto de sesión, hook useAuth y credenciales mock
-    ├── components/       # Componentes reutilizables (Logo, ui/Button, ui/Input)
-    ├── pages/            # Vistas completas (LoginPage, CatalogPage)
-    ├── types/            # Tipos del dominio (User, Repuesto, Categoría, Marca)
-    ├── test/             # Setup de Vitest y helpers de render
-    └── data/             # Datos mock / clientes de API
+    ├── components/
+    │   ├── ui/           # Button, Input
+    │   ├── catalog/      # ArticleCard, AlternativeRow, StockBadge, SearchBar, ListHeader, Highlight
+    │   └── Logo.tsx
+    ├── config/env.ts     # Lee VITE_DATA_SOURCE y VITE_API_URL
+    ├── data/articles/    # Repositorio de artículos: contrato, mock y API
+    ├── hooks/            # useArticlesSearch, useDebouncedValue
+    ├── pages/            # LoginPage, CatalogPage
+    ├── types/            # Tipos del dominio (User, ProductBox, AlternativeArticle, Warehouse)
+    ├── utils/            # formatPrice, text (normalizar y tokenizar búsquedas)
+    └── test/             # Setup de Vitest y helpers de render
 ```
-
-La carpeta `data/` tiene un `.gitkeep` solo para que exista en el repo. Borralo cuando agregues archivos.
 
 ## Autenticación (mock)
 
@@ -72,6 +76,44 @@ El login es solo de frontend para el MVP. Las credenciales viven en `src/auth/cr
 | `123` | `123` |
 
 La sesión se guarda en `sessionStorage` y se pierde al cerrar la pestaña. `useAuth()` expone `user`, `login()` y `logout()` para cualquier componente dentro de `<AuthProvider>`. Cuando exista backend, reemplazá `authenticate()` por la llamada real y el resto queda igual.
+
+## Fuente de datos: mock o API
+
+La UI nunca habla con la API directamente. Pasa por `ArticlesRepository` (`src/data/articles/repository.ts`), una interfaz con dos implementaciones:
+
+| Implementación | Archivo | Cuándo |
+|---|---|---|
+| `MockArticlesRepository` | `src/data/articles/mock/` | Default. Busca sobre los artículos hardcodeados en `articles.mock.ts`, pagina de a 10 y simula 300 ms de red. |
+| `ApiArticlesRepository` | `src/data/articles/api/` | Llama por `fetch` a la API real. Todavía no hay backend; el archivo documenta el contrato que tiene que cumplir. |
+
+Se elige por variable de entorno. Copiá `.env.example` a `.env` y ajustá:
+
+```bash
+VITE_DATA_SOURCE=mock   # o api
+VITE_API_URL=http://localhost:3000
+```
+
+`src/data/articles/index.ts` arma la instancia según eso. Los componentes reciben el repositorio como prop (con ese default), así los tests inyectan uno propio.
+
+### Contrato de la API
+
+```
+GET {VITE_API_URL}/articles/search?q=&page=&pageSize=   → SearchResponse
+GET {VITE_API_URL}/warehouses                            → Warehouse[]
+```
+
+Los tipos están en `src/types/article.ts`. La forma sigue a la de lupa-web: cada resultado es una "cajita" (`ProductBox`) con el artículo cabecera, sus líneas descriptivas, los modelos de auto compatibles y la lista de equivalentes (`AlternativeArticle`) con marca, código de fabricante, precio y stock por sucursal.
+
+### Agregar artículos al mock
+
+Sumá objetos al array de `src/data/articles/mock/articles.mock.ts`. El test de datos verifica que no haya códigos repetidos y que cada equivalente tenga stock para todas las sucursales de `warehouses.mock.ts`.
+
+## Catálogo
+
+- Búsqueda libre con debounce de 300 ms. Matchea todas las palabras contra descripción, detalles, marca y modelo de auto, marca del equivalente y código de fabricante, sin distinguir acentos ni mayúsculas. Las coincidencias se resaltan.
+- Paginado con botón "Cargar más".
+- Stock por sucursal con círculos de color: verde más de 5, amarillo entre 1 y 5, rojo sin stock. Más de 9 se muestra como "+9".
+- Layout mobile first: la cajita se apila en celular y se vuelve fila con columnas (foto, descripción, modelo, equivalentes) en pantallas grandes, como en lupa-web.
 
 ## Tailwind
 
@@ -91,10 +133,10 @@ Para agregar más tokens, sumalos al bloque `@theme` del mismo archivo.
 
 Lo mínimo para validar la idea:
 
-1. Listado de repuestos con búsqueda por texto.
-2. Filtro por categoría y marca.
-3. Vista de detalle de un repuesto.
-4. Datos mock en `src/data/` hasta que exista un backend.
+1. Login (hecho).
+2. Listado de repuestos con búsqueda por texto (hecho, con datos mock).
+3. Conectar la API real cuando exista.
+4. Pedidos / carrito, si el cliente lo pide.
 
 ## Testing
 

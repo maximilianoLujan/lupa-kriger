@@ -18,7 +18,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /ingresar/i }))
 
     const salir = await screen.findByRole('button', { name: 'Salir' })
-    expect(screen.getByText(/catálogo/i)).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Buscar repuestos' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Ingresar' })).not.toBeInTheDocument()
 
     await user.click(salir)
