@@ -102,7 +102,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
         {error && (
           <div className="rounded-2xl bg-brand-soft p-4 text-center text-sm text-brand-text">
             <p role="alert">{error}</p>
-            <Button type="button" onClick={retry} className="mt-3 h-10 w-auto px-6">
+            <Button type="button" size="sm" onClick={retry} className="mt-3">
               Reintentar
             </Button>
           </div>
@@ -116,7 +116,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
         )}
 
         {hasMore && !loading && (
-          <Button type="button" onClick={loadMore} className="bg-white text-ink shadow-none ring-1 ring-line hover:bg-canvas">
+          <Button type="button" variant="secondary" onClick={loadMore}>
             Cargar más
           </Button>
         )}
