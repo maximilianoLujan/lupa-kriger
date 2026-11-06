@@ -176,6 +176,30 @@ El carrito es un store de Zustand (`src/cart/store.ts`) persistido en `sessionSt
 
 No usar `black`, `gray-700+`, `slate-800+` ni clases `*-900`. Para agregar un color, sumá un token pastel al `@theme`.
 
+## Probar contra el ERP (local)
+
+1. En el repo del ERP, con Postgres levantado (`docker compose up -d postgres`), sumá el origen de esta app al `.env`:
+   `CORS_ORIGINS=http://localhost:3000,http://localhost:5173`. Después `pnpm dev:api` (API en `http://localhost:4000`)
+   y `pnpm dev:web` (web en `http://localhost:3000`).
+2. En la web del ERP, como super admin, contratá el módulo **Lupa** para la empresa (consola de plataforma) y, como
+   dueño de la empresa, activalo en Otros › Módulos.
+3. Como dueño, creá en Otros › Roles y permisos un rol «Lupa» con solo el permiso «Consultar artículos … desde la
+   Lupa», y en Otros › Usuarios un usuario con ese rol y una contraseña inicial.
+4. Acá, creá `.env` con `VITE_DATA_SOURCE=api` y `VITE_API_URL=http://localhost:4000`, y `npm run dev`. Entrá con el
+   email y la contraseña de ese usuario: tiene que ver los artículos de la empresa con precio y stock.
+
+Si el login da «No se pudo conectar con el servidor», la API no está corriendo o el origen no está en `CORS_ORIGINS`.
+Si entra pero la búsqueda da 403, al usuario le falta el permiso o la empresa no tiene la Lupa activa.
+
+## Despliegue
+
+Es un sitio estático (`npm run build` deja todo en `dist/`): sirve cualquier hosting de estáticos. En Vercel: importar
+el repo, framework **Vite**, y en _Environment Variables_ `VITE_DATA_SOURCE=api` y `VITE_API_URL=https://<dominio de la
+API del ERP>` (sin barra final). Las variables `VITE_*` se leen al compilar: cambiarlas exige un deploy nuevo.
+
+Del lado del ERP, el dominio público de esta app tiene que estar en `CORS_ORIGINS` de la API de producción
+(`/opt/erp/.env` en la EC2, y reiniciar la API); si no, el navegador bloquea todas las llamadas.
+
 ## Alcance del MVP
 
 Lo mínimo para validar la idea:
@@ -202,4 +226,4 @@ Cada feature se entrega con sus tests al lado del archivo que prueba (`Foo.tsx` 
 - Sin colores negros ni oscuros. Ver "Tailwind y paleta".
 - Sin estado global más allá del contexto de auth. `useState` y props alcanzan para el MVP.
 - Mobile first: escribí las clases base para celular y agregá `sm:`, `lg:` para pantallas más grandes.
-- Todo cambio se commitea y pushea a `main`. No hay ambiente productivo todavía.
+- Todo cambio se commitea y pushea a `main`.
