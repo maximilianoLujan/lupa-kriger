@@ -49,6 +49,12 @@ describe('NavBar', () => {
     expect(tooltip).not.toHaveAttribute('data-open')
   })
 
+  it('la tira con scroll deja aire vertical para que no se recorten los chips', () => {
+    render(<NavBar />)
+    const list = screen.getByRole('list')
+    expect(list).toHaveClass('overflow-x-auto', 'py-1.5', '-my-1.5')
+  })
+
   it('acepta items y sección actual custom', () => {
     render(
       <NavBar

@@ -14,7 +14,8 @@ interface NavBarProps {
 export function NavBar({ items = NAV_ITEMS, current = 'catalogo' }: NavBarProps) {
   return (
     <nav aria-label="Secciones">
-      <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* El scroll horizontal también recorta en vertical: el padding deja lugar al anillo y la sombra de los chips. */}
+      <ul className="-mx-4 -my-1.5 flex gap-2 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) =>
           item.locked ? (
             <LockedChip key={item.key} item={item} />
