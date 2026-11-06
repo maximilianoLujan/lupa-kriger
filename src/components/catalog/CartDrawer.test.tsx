@@ -42,7 +42,7 @@ describe('CartDrawer', () => {
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: 'Sumar FR-1' }))
-    expect(screen.getByLabelText('Cantidad FR-1')).toHaveTextContent('3')
+    expect(screen.getByRole('textbox', { name: 'Cantidad FR-1' })).toHaveValue('3')
 
     await user.click(screen.getByRole('button', { name: 'Restar HQF' }))
     expect(screen.queryByText('FERODO')).not.toBeInTheDocument()

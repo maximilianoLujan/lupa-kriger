@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useCart } from '../../cart/useCart'
 import { formatPrice } from '../../utils/formatPrice'
 import { Button } from '../ui/Button'
+import { QuantityStepper } from './QuantityStepper'
 
 interface CartDrawerProps {
   open: boolean
@@ -61,27 +62,12 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   <p className="truncate text-xs text-ink-soft">{article.particularCode}</p>
                   <p className="text-xs font-semibold text-emerald-600">$ {formatPrice(article.priceList * quantity)}</p>
                 </div>
-                <div className="flex items-center rounded-full bg-canvas ring-1 ring-line">
-                  <button
-                    type="button"
-                    aria-label={`Restar ${article.particularCode}`}
-                    onClick={() => setQuantity(article.articleCode, quantity - 1)}
-                    className="h-8 w-8 rounded-full text-ink hover:bg-brand-soft"
-                  >
-                    −
-                  </button>
-                  <span className="w-7 text-center text-sm font-semibold text-ink tabular-nums" aria-label={`Cantidad ${article.particularCode}`}>
-                    {quantity}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Sumar ${article.particularCode}`}
-                    onClick={() => setQuantity(article.articleCode, quantity + 1)}
-                    className="h-8 w-8 rounded-full text-ink hover:bg-brand-soft"
-                  >
-                    +
-                  </button>
-                </div>
+                <QuantityStepper
+                  size="sm"
+                  value={quantity}
+                  code={article.particularCode}
+                  onChange={(q) => setQuantity(article.articleCode, q)}
+                />
                 <button
                   type="button"
                   aria-label={`Quitar ${article.particularCode}`}

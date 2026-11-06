@@ -22,7 +22,7 @@ describe('CatalogPage', () => {
     expect(screen.getByText('12 resultados')).toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(10)
     expect(screen.getByText('DESCRIPCIÓN')).toBeInTheDocument()
-    expect(screen.getAllByText('GUA').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('STOCK').length).toBeGreaterThan(0)
   })
 
   it('carga más resultados con el botón', async () => {
@@ -80,7 +80,9 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('button', { name: 'Abrir carrito' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Agregar FRIC-ROT FR-1024 al carrito' }))
-    await user.click(screen.getByRole('button', { name: 'Agregar FRIC-ROT FR-1024 al carrito' }))
+    // El botón se reemplaza por el control de cantidad.
+    expect(screen.queryByRole('button', { name: 'Agregar FRIC-ROT FR-1024 al carrito' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Sumar FR-1024' }))
     await user.click(screen.getByRole('button', { name: 'Agregar MANN W 712/75 al carrito' }))
 
     await user.click(screen.getByRole('button', { name: 'Abrir carrito, 3 unidades' }))

@@ -8,19 +8,24 @@ interface ListHeaderProps {
 /**
  * Títulos de columna en una sola línea, con las mismas grillas que las cards
  * para que cada título quede exactamente sobre su columna.
+ * Con un solo depósito la columna dice "STOCK"; con varios, el nombre corto de cada uno.
  */
 export function ListHeader({ warehouses }: ListHeaderProps) {
   const alternativesHeader = (
     <div className={ALT_GRID}>
       <span>MARCA</span>
       <span className="text-right">PRECIO</span>
-      <span className="flex gap-1.5" title="Stock por sucursal">
-        {warehouses.map((w) => (
-          <span key={w.code} className="w-7 text-center">
-            {w.shortName}
-          </span>
-        ))}
-      </span>
+      {warehouses.length > 1 ? (
+        <span className="flex gap-1.5" title="Stock por sucursal">
+          {warehouses.map((w) => (
+            <span key={w.code} className="w-7 text-center">
+              {w.shortName}
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span className="text-center">STOCK</span>
+      )}
       <span className="text-center">PEDIR</span>
     </div>
   )

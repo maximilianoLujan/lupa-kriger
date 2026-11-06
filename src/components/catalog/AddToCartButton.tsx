@@ -1,25 +1,36 @@
 import { useCart } from '../../cart/useCart'
 import type { AlternativeArticle } from '../../types/article'
+import { QuantityStepper } from './QuantityStepper'
 
 interface AddToCartButtonProps {
   article: AlternativeArticle
 }
 
-/** Botón redondo "agregar al carrito". Si ya está en el carrito se pinta de rojo y muestra la cantidad. */
+/**
+ * Columna PEDIR de cada equivalente. Si el artículo no está en el carrito
+ * muestra el botón de agregar; una vez agregado, el control de cantidad.
+ */
 export function AddToCartButton({ article }: AddToCartButtonProps) {
-  const { items, add } = useCart()
+  const { items, add, setQuantity } = useCart()
   const inCart = items.find((i) => i.article.articleCode === article.articleCode)?.quantity ?? 0
+
+  if (inCart > 0) {
+    return (
+      <QuantityStepper
+        size="sm"
+        value={inCart}
+        code={article.particularCode}
+        onChange={(q) => setQuantity(article.articleCode, q)}
+      />
+    )
+  }
 
   return (
     <button
       type="button"
       onClick={() => add(article)}
       aria-label={`Agregar ${article.brandName} ${article.particularCode} al carrito`}
-      className={`relative flex h-10 w-10 items-center justify-center rounded-full transition active:scale-95 focus-visible:ring-4 focus-visible:ring-brand/30 focus-visible:outline-none ${
-        inCart
-          ? 'bg-brand text-white'
-          : 'bg-white text-brand ring-1 ring-brand/50 hover:bg-brand hover:text-white hover:ring-brand'
-      }`}
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand ring-1 ring-brand/50 transition active:scale-95 hover:bg-brand hover:text-white hover:ring-brand focus-visible:ring-4 focus-visible:ring-brand/30 focus-visible:outline-none"
     >
       <svg
         viewBox="0 0 24 24"
@@ -36,14 +47,6 @@ export function AddToCartButton({ article }: AddToCartButtonProps) {
         <path d="M2 3h3l2.5 11h11L21 7H6.2" />
         <path d="M12 8v4M10 10h4" />
       </svg>
-      {inCart > 0 && (
-        <span
-          aria-label={`${inCart} en el carrito`}
-          className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-brand-text ring-2 ring-brand"
-        >
-          {inCart}
-        </span>
-      )}
     </button>
   )
 }
