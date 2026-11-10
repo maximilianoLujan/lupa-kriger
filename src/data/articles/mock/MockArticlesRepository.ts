@@ -87,7 +87,10 @@ export class MockArticlesRepository implements ArticlesRepository {
     }
   }
 
-  /** Arma la nota de pedido con los precios actuales del mock y la suma al historial, como haría la API. */
+  /**
+   * Arma la nota de pedido con los precios actuales del mock y la suma al historial, como haría la API: entra
+   * pendiente de confirmación y sin número (la empresa la numera al emitirla).
+   */
   async createOrder(input: CreateOrderInput): Promise<Order> {
     await this.wait()
 
@@ -112,7 +115,7 @@ export class MockArticlesRepository implements ArticlesRepository {
     const number = Math.max(0, ...this.orders.map((o) => Number(o.id) || 0)) + 1
     const order: Order = {
       id: String(number),
-      number: orderTitle(number),
+      number: orderTitle(null),
       createdAt: new Date().toISOString(),
       status: 'pending',
       items,

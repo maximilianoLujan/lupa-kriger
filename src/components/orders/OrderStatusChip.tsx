@@ -1,7 +1,8 @@
 import type { OrderStatus } from '../../types/order'
 
 const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: 'Pendiente',
+  pending: 'Pendiente de confirmación',
+  confirmed: 'Confirmado',
   preparing: 'En preparación',
   partial: 'Entrega parcial',
   completed: 'Completado',
@@ -9,7 +10,7 @@ const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
 }
 
 /** Pedidos en curso: se marcan con el rojo de marca. Los finales van en neutro. */
-const ACTIVE: ReadonlySet<OrderStatus> = new Set(['pending', 'preparing', 'partial'])
+const ACTIVE: ReadonlySet<OrderStatus> = new Set(['pending', 'confirmed', 'preparing', 'partial'])
 
 /** Estado del pedido como chip. Un solo acento (rojo) para lo que está en curso; lo terminado en gris. */
 export function OrderStatusChip({ status }: { status: OrderStatus }) {

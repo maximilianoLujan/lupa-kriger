@@ -12,6 +12,7 @@ describe('MOCK_ORDERS', () => {
     expect(new Set(MOCK_ORDERS.map((o) => o.number)).size).toBe(20)
     expect(MOCK_ORDERS[0].number).toBe('Nota de pedido 00000120')
     expect(orderTitle(7)).toBe('Nota de pedido 00000007')
+    expect(orderTitle(null)).toBe('Nota de pedido')
   })
 
   it('cada renglón sale de un artículo del catálogo mock y los importes cierran', () => {
@@ -32,6 +33,7 @@ describe('MOCK_ORDERS', () => {
   it('cubre pedidos en curso, completados y cancelados', () => {
     const statuses = new Set(MOCK_ORDERS.map((o) => o.status))
     expect(statuses).toContain('pending')
+    expect(statuses).toContain('confirmed')
     expect(statuses).toContain('preparing')
     expect(statuses).toContain('partial')
     expect(statuses).toContain('completed')

@@ -62,7 +62,7 @@ interface ApiOrder {
   /** Título del comprobante: "Nota de pedido 00000007". */
   number: string
   createdAt: string
-  /** pending | preparing | partial | completed | cancelled. */
+  /** pending (sin confirmar) | confirmed | preparing | partial | completed | cancelled. */
   status: string
   total: string
   items: ApiOrderItem[]
@@ -184,7 +184,7 @@ function toAlternative(a: ApiAlternative): AlternativeArticle {
   }
 }
 
-const ORDER_STATUSES: readonly OrderStatus[] = ['pending', 'preparing', 'partial', 'completed', 'cancelled']
+const ORDER_STATUSES: readonly OrderStatus[] = ['pending', 'confirmed', 'preparing', 'partial', 'completed', 'cancelled']
 
 /** Un estado que la app no conoce se muestra como pendiente antes que romper la pantalla. */
 function toOrderStatus(status: string): OrderStatus {

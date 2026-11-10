@@ -89,7 +89,9 @@ describe('CartPage', () => {
     expect(await screen.findByText('¡Pedido enviado!')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText('10 de 21 pedidos')).toBeInTheDocument())
     const history = screen.getByRole('region', { name: 'Historial de pedidos' })
-    expect(within(history).getAllByRole('article')[0]).toHaveAccessibleName('Nota de pedido 00000121')
+    const nuevo = within(history).getAllByRole('article')[0]
+    expect(nuevo).toHaveAccessibleName('Nota de pedido') // sin número hasta que la empresa lo confirme
+    expect(within(nuevo).getByText('Pendiente de confirmación')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ir al carrito' })).toBeInTheDocument() // sin contador: carrito vacío
   })
 

@@ -160,7 +160,7 @@ describe('MockArticlesRepository.createOrder', () => {
     const own = new MockArticlesRepository({ delayMs: 0 })
     const order = await own.createOrder({ items: [{ code: 'FR-1024', quantity: 2 }, { code: 'W 712/75', quantity: 1 }] })
 
-    expect(order).toMatchObject({ id: '121', number: 'Nota de pedido 00000121', status: 'pending', total: 67600 })
+    expect(order).toMatchObject({ id: '121', number: 'Nota de pedido', status: 'pending', total: 67600 })
     expect(order.items).toEqual([
       { articleCode: '10001-1', particularCode: 'FR-1024', brandName: 'FRIC-ROT', description: 'Pastilla freno delantera Fric-Rot', quantity: 2, unitPrice: 28900, total: 57800 },
       { articleCode: '10002-1', particularCode: 'W 712/75', brandName: 'MANN', description: 'Filtro de aceite Mann', quantity: 1, unitPrice: 9800, total: 9800 },

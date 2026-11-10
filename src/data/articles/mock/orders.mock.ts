@@ -19,7 +19,7 @@ const SEEDS: OrderSeed[] = [
   { number: 120, createdAt: '2026-11-09T10:12:00-03:00', status: 'pending', items: [['10001-1', 2], ['10002-1', 4]] },
   { number: 119, createdAt: '2026-11-06T16:40:00-03:00', status: 'preparing', items: [['10003-2', 2], ['10008-1', 2], ['10004-1', 8]] },
   { number: 118, createdAt: '2026-11-03T09:05:00-03:00', status: 'partial', items: [['10010-1', 1]] },
-  { number: 117, createdAt: '2026-10-29T11:30:00-03:00', status: 'completed', items: [['10005-1', 3], ['10009-1', 1]] },
+  { number: 117, createdAt: '2026-10-29T11:30:00-03:00', status: 'confirmed', items: [['10005-1', 3], ['10009-1', 1]] },
   { number: 116, createdAt: '2026-10-24T15:20:00-03:00', status: 'completed', items: [['10006-2', 1], ['10002-2', 2]] },
   { number: 115, createdAt: '2026-10-20T08:50:00-03:00', status: 'cancelled', items: [['10012-1', 6]] },
   { number: 114, createdAt: '2026-10-15T17:10:00-03:00', status: 'completed', items: [['10001-2', 1], ['10008-3', 2], ['10007-1', 2]] },
@@ -38,9 +38,9 @@ const SEEDS: OrderSeed[] = [
   { number: 101, createdAt: '2026-07-14T12:40:00-03:00', status: 'completed', items: [['10001-1', 1], ['10008-1', 1]] },
 ]
 
-/** Título como lo arma el ERP para una nota de pedido: el número a ocho dígitos. */
-export function orderTitle(number: number): string {
-  return `Nota de pedido ${String(number).padStart(8, '0')}`
+/** Título como lo arma el ERP para una nota de pedido: el número a ocho dígitos; sin número (borrador), solo el tipo. */
+export function orderTitle(number: number | null): string {
+  return number === null ? 'Nota de pedido' : `Nota de pedido ${String(number).padStart(8, '0')}`
 }
 
 function toOrderItem([articleCode, quantity]: SeedItem): OrderItem {

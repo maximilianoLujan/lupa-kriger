@@ -15,7 +15,8 @@ interface CartItemsProps {
 
 /**
  * Contenido del carrito en la pantalla `/carrito`: renglones con cantidad editable, total y el envío del pedido.
- * Al enviarse, el carrito se vacía y queda la confirmación con el número de pedido. Vacío, invita a volver al catálogo.
+ * Al enviarse, el carrito se vacía y queda la confirmación (el pedido entra pendiente de confirmación por la
+ * empresa). Vacío, invita a volver al catálogo.
  */
 export function CartItems({ repository }: CartItemsProps) {
   const { items, count, total, setQuantity, remove, clear } = useCart()
@@ -116,10 +117,11 @@ function OrderSent({ order, onDismiss }: { order: Order; onDismiss: () => void }
       </span>
       <h2 className="mt-4 text-lg font-bold text-ink">¡Pedido enviado!</h2>
       <p className="mt-1 text-sm font-semibold text-ink tabular-nums">
-        {order.number} · {units} {units === 1 ? 'unidad' : 'unidades'} · $ {formatPrice(order.total)}
+        {units} {units === 1 ? 'unidad' : 'unidades'} · $ {formatPrice(order.total)}
       </p>
       <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">
-        La empresa ya lo recibió. Lo vas a ver acá abajo, en el historial, con su estado a medida que avance.
+        La empresa lo va a revisar y confirmar. Lo vas a ver acá abajo, en el historial, como pendiente de
+        confirmación y con su estado a medida que avance.
       </p>
       <div className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row-reverse">
         <LinkButton to="/" size="sm" className="sm:flex-1">

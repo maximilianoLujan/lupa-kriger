@@ -81,7 +81,8 @@ describe('CartItems', () => {
 
     const confirmation = await screen.findByRole('status')
     expect(confirmation).toHaveTextContent('¡Pedido enviado!')
-    expect(confirmation).toHaveTextContent('Nota de pedido 00000121 · 3 unidades · $ 92.300') // 2 × 28.900 + 34.500
+    expect(confirmation).toHaveTextContent('3 unidades · $ 92.300') // 2 × 28.900 + 34.500
+    expect(confirmation).toHaveTextContent('pendiente de confirmación')
     expect(createOrder).toHaveBeenCalledWith({
       items: [
         { code: 'FR-1024', quantity: 2 },
