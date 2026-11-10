@@ -17,8 +17,8 @@ export function CartPage({ repository = articlesRepository }: CartPageProps) {
     <div className="min-h-dvh bg-canvas">
       <AppHeader />
 
-      {/* Mismo ancho que el catálogo: el header y las dos pantallas comparten `max-w-6xl`. */}
-      <main className="mx-auto max-w-6xl space-y-8 px-4 py-4 sm:py-6">
+      {/* Mismo ancho que el catálogo (`max-w-6xl`). El padding inferior deja lugar al botón flotante de enviar. */}
+      <main className="mx-auto max-w-6xl space-y-8 px-4 py-4 pb-28 sm:py-6 sm:pb-28">
         <section aria-labelledby="cart-heading" className="space-y-3">
           <div className="flex items-baseline justify-between">
             <h1 id="cart-heading" className="text-xl font-bold text-ink">

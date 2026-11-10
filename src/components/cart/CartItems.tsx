@@ -1,174 +1,105 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useCart } from '../../cart/useCart'
 import type { ArticlesRepository } from '../../data/articles'
-import { useCreateOrder } from '../../hooks/useCreateOrder'
-import { errorMessage } from '../../lib/http'
 import type { Order } from '../../types/order'
 import { formatPrice } from '../../utils/formatPrice'
 import { QuantityStepper } from '../catalog/QuantityStepper'
 import { Button } from '../ui/Button'
 import { LinkButton } from '../ui/LinkButton'
+import { SendOrderDialog } from './SendOrderDialog'
 
 interface CartItemsProps {
   repository: ArticlesRepository
 }
 
-/** El último número de cliente usado se recuerda en este navegador, para no volver a escribirlo en cada pedido. */
-const CUSTOMER_CODE_KEY = 'cart:customerCode'
-
-function readSavedCustomerCode(): string {
-  try {
-    return localStorage.getItem(CUSTOMER_CODE_KEY) ?? ''
-  } catch {
-    return ''
-  }
-}
-
-function saveCustomerCode(code: string) {
-  try {
-    localStorage.setItem(CUSTOMER_CODE_KEY, code)
-  } catch {
-    // Sin storage (modo privado, bloqueado): se pide de nuevo la próxima vez.
-  }
-}
-
-const MISSING_CUSTOMER_CODE = 'Ingresá tu número de cliente para enviar el pedido.'
-
 /**
- * Contenido del carrito en la pantalla `/carrito`: renglones con cantidad editable, total, el número de cliente y el
- * envío del pedido. Al enviarse, el carrito se vacía y queda la confirmación (el pedido entra pendiente de
- * confirmación por la empresa). Vacío, invita a volver al catálogo.
+ * Contenido del carrito en la pantalla `/carrito`: renglones con cantidad editable y los totales, nada más.
+ * El envío vive en un botón flotante abajo a la derecha que abre el modal con el número de cliente. Al enviarse,
+ * el carrito se vacía y queda la confirmación (el pedido entra pendiente de confirmación por la empresa).
+ * Vacío, invita a volver al catálogo.
  */
 export function CartItems({ repository }: CartItemsProps) {
   const { items, count, total, setQuantity, remove, clear } = useCart()
-  const createOrder = useCreateOrder(repository)
   const [sent, setSent] = useState<Order | null>(null)
-  const [customerCode, setCustomerCode] = useState(readSavedCustomerCode)
-  const [missingCode, setMissingCode] = useState(false)
-  const codeInput = useRef<HTMLInputElement>(null)
+  const [sending, setSending] = useState(false)
 
   if (sent) return <OrderSent order={sent} onDismiss={() => setSent(null)} />
   if (items.length === 0) return <CartEmpty />
 
-  function send() {
-    const code = customerCode.trim()
-    if (!code) {
-      setMissingCode(true)
-      codeInput.current?.focus()
-      return
-    }
-    setMissingCode(false)
-    createOrder.mutate(
-      { customerCode: code, items: items.map(({ article, quantity }) => ({ code: article.particularCode, quantity })) },
-      {
-        onSuccess: (order) => {
-          saveCustomerCode(code)
-          clear()
-          setSent(order)
-        },
-      },
-    )
-  }
-
-  const error = missingCode
-    ? MISSING_CUSTOMER_CODE
-    : createOrder.isError
-      ? errorMessage(createOrder.error, 'No se pudo enviar el pedido. Probá de nuevo.')
-      : null
-
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-line">
-      <ul className="divide-y divide-line">
-        {items.map(({ article, quantity }) => (
-          <li key={article.articleCode} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-ink">{article.brandName}</p>
-              <p className="truncate text-xs font-semibold text-ink-soft tabular-nums">{article.particularCode}</p>
-              <p className="truncate text-xs text-ink-soft">{article.description}</p>
-            </div>
-            <div className="flex items-center justify-between gap-3 sm:justify-end">
-              <QuantityStepper
-                size="sm"
-                value={quantity}
-                code={article.particularCode}
-                onChange={(q) => setQuantity(article.articleCode, q)}
-              />
-              <p className="w-24 text-right text-sm font-bold text-ink tabular-nums">
-                $ {formatPrice(article.priceList * quantity)}
-              </p>
-              <button
-                type="button"
-                aria-label={`Quitar ${article.particularCode}`}
-                onClick={() => remove(article.articleCode)}
-                className="rounded-full p-2 text-ink-soft transition hover:bg-canvas hover:text-brand-text"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4" aria-hidden>
-                  <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-                </svg>
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <>
+      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-line">
+        <ul className="divide-y divide-line">
+          {items.map(({ article, quantity }) => (
+            <li key={article.articleCode} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-ink">{article.brandName}</p>
+                <p className="truncate text-xs font-semibold text-ink-soft tabular-nums">{article.particularCode}</p>
+                <p className="truncate text-xs text-ink-soft">{article.description}</p>
+              </div>
+              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                <QuantityStepper
+                  size="sm"
+                  value={quantity}
+                  code={article.particularCode}
+                  onChange={(q) => setQuantity(article.articleCode, q)}
+                />
+                <p className="w-24 text-right text-sm font-bold text-ink tabular-nums">
+                  $ {formatPrice(article.priceList * quantity)}
+                </p>
+                <button
+                  type="button"
+                  aria-label={`Quitar ${article.particularCode}`}
+                  onClick={() => remove(article.articleCode)}
+                  className="rounded-full p-2 text-ink-soft transition hover:bg-canvas hover:text-brand-text"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4" aria-hidden>
+                    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+                  </svg>
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
 
-      <div className="space-y-3 border-t border-line bg-canvas/60 p-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-ink-soft">
-            Total · {count} {count === 1 ? 'unidad' : 'unidades'}
-          </span>
+        <div className="flex items-center justify-between border-t border-line bg-canvas/60 p-4">
+          <div className="flex flex-col">
+            <span className="text-sm text-ink-soft">
+              Total · {count} {count === 1 ? 'unidad' : 'unidades'}
+            </span>
+            <button
+              type="button"
+              onClick={clear}
+              className="mt-1 self-start text-xs font-medium text-ink-soft transition hover:text-brand-text"
+            >
+              Vaciar carrito
+            </button>
+          </div>
           <span className="text-xl font-bold text-ink tabular-nums">$ {formatPrice(total)}</span>
         </div>
-
-        <div>
-          <label htmlFor="customer-code" className="text-xs font-semibold text-ink">
-            Tu número de cliente
-          </label>
-          <input
-            ref={codeInput}
-            id="customer-code"
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            placeholder="Ej.: 1024"
-            value={customerCode}
-            onChange={(e) => {
-              setCustomerCode(e.target.value)
-              if (e.target.value.trim()) setMissingCode(false)
-            }}
-            aria-describedby="customer-code-help"
-            aria-invalid={missingCode || undefined}
-            className={`mt-1 h-11 w-full rounded-xl border bg-white px-4 text-base text-ink tabular-nums shadow-sm placeholder:text-ink-soft focus:ring-4 focus:ring-brand/30 focus:outline-none sm:max-w-xs ${
-              missingCode ? 'border-brand' : 'border-line focus:border-brand'
-            }`}
-          />
-          <p id="customer-code-help" className="mt-1 text-xs text-ink-soft">
-            Es el número que figura en tus facturas o remitos. Si no lo tenés, pedíselo a la empresa.
-          </p>
-        </div>
-
-        {error && (
-          <p role="alert" className="rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand-text">
-            {error}
-          </p>
-        )}
-        <div className="flex flex-col gap-2 sm:flex-row-reverse">
-          <Button type="button" onClick={send} loading={createOrder.isPending} className="sm:flex-1">
-            {createOrder.isPending ? 'Enviando…' : 'Enviar pedido'}
-          </Button>
-          <LinkButton to="/" variant="secondary" className="sm:flex-1">
-            Seguir buscando
-          </LinkButton>
-        </div>
-        <button
-          type="button"
-          onClick={clear}
-          disabled={createOrder.isPending}
-          className="w-full text-center text-xs font-medium text-ink-soft transition hover:text-brand-text disabled:opacity-60"
-        >
-          Vaciar carrito
-        </button>
       </div>
-    </div>
+
+      {/* Botón flotante: siempre a mano, también con el carrito largo. El padding inferior de la página le deja lugar. */}
+      <div className="fixed right-4 bottom-4 z-30 sm:right-6 sm:bottom-6">
+        <Button type="button" size="sm" onClick={() => setSending(true)} className="h-12 gap-2 rounded-full px-5 shadow-lg shadow-brand/30">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+            <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
+          </svg>
+          Enviar pedido
+        </Button>
+      </div>
+
+      {sending && (
+        <SendOrderDialog
+          repository={repository}
+          onClose={() => setSending(false)}
+          onSent={(order) => {
+            setSending(false)
+            setSent(order)
+          }}
+        />
+      )}
+    </>
   )
 }
 
