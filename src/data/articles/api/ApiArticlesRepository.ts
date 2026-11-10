@@ -7,6 +7,7 @@ import type {
   SearchResponse,
   Warehouse,
 } from '../../../types/article'
+import type { Order, OrderItem, OrderStatus, OrdersResponse, PageParams } from '../../../types/order'
 import { DEFAULT_PAGE_SIZE, type ArticlesRepository } from '../repository'
 
 /** Lo que devuelve la API del ERP (módulo Lupa). Se traduce a los tipos de la app acá, y solo acá. */
@@ -45,6 +46,28 @@ interface ApiWarehouse {
   code: string
   name: string
 }
+interface ApiOrderItem {
+  code: string
+  name: string
+  brandName: string | null
+  quantity: number
+  unitPrice: string
+}
+interface ApiOrder {
+  id: string
+  number: string
+  createdAt: string
+  status: string
+  total: string
+  items: ApiOrderItem[]
+}
+interface ApiOrdersResponse {
+  items: ApiOrder[]
+  page: number
+  pageSize: number
+  hasMore: boolean
+  total: number
+}
 
 /**
  * Fuente real de datos: la API del ERP. El token, el refresh y los errores
@@ -52,6 +75,7 @@ interface ApiWarehouse {
  *
  *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
  *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
+ *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total } (del más nuevo al más viejo)
  *   GET /v1/public/lupa/photos?token=…&variant=thumb  → la foto (ruta firmada que viene en `photoUrl`; el navegador
  *                                                        la carga sin token de sesión)
  */
@@ -78,6 +102,16 @@ export class ApiArticlesRepository implements ArticlesRepository {
   async getWarehouses(): Promise<Warehouse[]> {
     const { data } = await this.http.get<{ items: ApiWarehouse[] }>('/v1/lupa/warehouses')
     return data.items.map((w) => ({ code: w.code, shortName: w.code, name: w.name }))
+  }
+
+  async getOrders({ page, pageSize = DEFAULT_PAGE_SIZE }: PageParams): Promise<OrdersResponse> {
+    const { data } = await this.http.get<ApiOrdersResponse>('/v1/lupa/orders', { params: { page, pageSize } })
+    return {
+      data: data.items.map(toOrder),
+      page: data.page,
+      hasMore: data.hasMore,
+      total: data.total,
+    }
   }
 }
 
@@ -128,5 +162,35 @@ function toAlternative(a: ApiAlternative): AlternativeArticle {
     brandName: a.brandName ?? '',
     priceList: a.price == null ? 0 : Number(a.price),
     stock: Object.fromEntries(Object.entries(a.stock).map(([code, qty]) => [code, Number(qty)])),
+  }
+}
+
+const ORDER_STATUSES: readonly OrderStatus[] = ['pendiente', 'confirmado', 'enviado', 'entregado', 'cancelado']
+
+/** Un estado desconocido de la API se muestra como pendiente antes que romper la pantalla. */
+function toOrderStatus(status: string): OrderStatus {
+  const normalized = status.toLowerCase() as OrderStatus
+  return ORDER_STATUSES.includes(normalized) ? normalized : 'pendiente'
+}
+
+function toOrderItem(item: ApiOrderItem): OrderItem {
+  return {
+    articleCode: item.code,
+    particularCode: item.code,
+    brandName: item.brandName ?? '',
+    description: item.name,
+    quantity: item.quantity,
+    unitPrice: Number(item.unitPrice),
+  }
+}
+
+function toOrder(order: ApiOrder): Order {
+  return {
+    id: order.id,
+    number: order.number,
+    createdAt: order.createdAt,
+    status: toOrderStatus(order.status),
+    items: order.items.map(toOrderItem),
+    total: Number(order.total),
   }
 }

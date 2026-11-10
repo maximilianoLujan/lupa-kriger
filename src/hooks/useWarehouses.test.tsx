@@ -9,7 +9,7 @@ import { useWarehouses } from './useWarehouses'
 describe('useWarehouses', () => {
   it('arranca vacío, carga una vez y comparte el resultado entre componentes', async () => {
     const getWarehouses = vi.fn(async () => [{ code: 'GUA', shortName: 'GUA', name: 'Guatraché' }])
-    const repo: ArticlesRepository = { search: vi.fn(), getWarehouses }
+    const repo: ArticlesRepository = { search: vi.fn(), getWarehouses, getOrders: vi.fn() }
     const client = createTestQueryClient()
     const wrapper = ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={client}>{children}</QueryClientProvider>

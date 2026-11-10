@@ -118,3 +118,61 @@ describe('ApiArticlesRepository', () => {
     expect(sessionStorage.getItem('auth:user')).toBeNull()
   })
 })
+
+describe('ApiArticlesRepository.getOrders', () => {
+  it('pide el historial paginado y traduce los pedidos', async () => {
+    const { http, calls } = replyWith(200, {
+      items: [
+        {
+          id: '77',
+          number: 'P-000077',
+          createdAt: '2026-11-09T10:12:00-03:00',
+          status: 'ENVIADO',
+          total: '38700.00',
+          items: [
+            { code: 'FR-1024', name: 'Pastilla freno', brandName: 'Fric-Rot', quantity: 1, unitPrice: '28900.00' },
+            { code: 'W 712/75', name: 'Filtro aceite', brandName: null, quantity: 1, unitPrice: '9800.00' },
+          ],
+        },
+      ],
+      page: 2,
+      pageSize: 10,
+      hasMore: true,
+      total: 20,
+    })
+
+    const res = await new ApiArticlesRepository(http).getOrders({ page: 2 })
+
+    expect(calls[0].url).toBe('/v1/lupa/orders')
+    expect(calls[0].params).toEqual({ page: 2, pageSize: 10 })
+    expect(res).toEqual({
+      page: 2,
+      hasMore: true,
+      total: 20,
+      data: [
+        {
+          id: '77',
+          number: 'P-000077',
+          createdAt: '2026-11-09T10:12:00-03:00',
+          status: 'enviado',
+          total: 38700,
+          items: [
+            { articleCode: 'FR-1024', particularCode: 'FR-1024', brandName: 'Fric-Rot', description: 'Pastilla freno', quantity: 1, unitPrice: 28900 },
+            { articleCode: 'W 712/75', particularCode: 'W 712/75', brandName: '', description: 'Filtro aceite', quantity: 1, unitPrice: 9800 },
+          ],
+        },
+      ],
+    })
+  })
+
+  it('un estado desconocido se muestra como pendiente', async () => {
+    const order = { id: '1', number: 'P-1', createdAt: '2026-01-01T00:00:00Z', status: 'RARO', total: '0', items: [] }
+    const { http } = replyWith(200, { items: [order], page: 1, pageSize: 10, hasMore: false, total: 1 })
+    const res = await new ApiArticlesRepository(http).getOrders({ page: 1 })
+    expect(res.data[0].status).toBe('pendiente')
+  })
+
+  it('propaga los errores HTTP', async () => {
+    await expect(new ApiArticlesRepository(replyWith(500).http).getOrders({ page: 1 })).rejects.toMatchObject({ status: 500 })
+  })
+})

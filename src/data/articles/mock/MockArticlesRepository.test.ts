@@ -109,3 +109,47 @@ describe('datos mock', () => {
     expect(new Set(codes).size).toBe(codes.length)
   })
 })
+
+describe('MockArticlesRepository.getOrders', () => {
+  it('devuelve la primera página de 10 pedidos, del más nuevo al más viejo', async () => {
+    const res = await repo.getOrders({ page: 1 })
+    expect(res.total).toBe(20)
+    expect(res.data).toHaveLength(10)
+    expect(res.page).toBe(1)
+    expect(res.hasMore).toBe(true)
+    expect(res.data[0].number).toBe('P-000120')
+    expect(res.data[9].number).toBe('P-000111')
+  })
+
+  it('la segunda página es la última', async () => {
+    const res = await repo.getOrders({ page: 2 })
+    expect(res.data).toHaveLength(10)
+    expect(res.hasMore).toBe(false)
+    expect(res.data.at(-1)?.number).toBe('P-000101')
+  })
+
+  it('respeta pageSize y corrige páginas menores a 1', async () => {
+    const res = await repo.getOrders({ page: 0, pageSize: 3 })
+    expect(res.page).toBe(1)
+    expect(res.data).toHaveLength(3)
+  })
+
+  it('ordena por fecha aunque los pedidos inyectados vengan desordenados', async () => {
+    const base = { id: '', status: 'entregado' as const, items: [], total: 0 }
+    const custom = new MockArticlesRepository({
+      delayMs: 0,
+      orders: [
+        { ...base, id: 'a', number: 'A', createdAt: '2026-01-01T00:00:00Z' },
+        { ...base, id: 'b', number: 'B', createdAt: '2026-03-01T00:00:00Z' },
+      ],
+    })
+    const res = await custom.getOrders({ page: 1 })
+    expect(res.data.map((o) => o.number)).toEqual(['B', 'A'])
+    expect(res.hasMore).toBe(false)
+  })
+
+  it('sin pedidos devuelve vacío', async () => {
+    const empty = new MockArticlesRepository({ delayMs: 0, orders: [] })
+    expect(await empty.getOrders({ page: 1 })).toEqual({ data: [], page: 1, hasMore: false, total: 0 })
+  })
+})

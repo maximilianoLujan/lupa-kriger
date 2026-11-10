@@ -4,8 +4,8 @@ export interface NavItem {
   key: string
   label: string
   icon: ReactNode
-  /** Sin `locked` el item está disponible. */
-  locked?: boolean
+  /** Ruta a la que lleva. Sin `to`, el item está bloqueado y se muestra como "Próximamente". */
+  to?: string
 }
 
 const iconProps = {
@@ -31,6 +31,13 @@ const cartIcon = (
     <circle cx="9" cy="20" r="1" />
     <circle cx="18" cy="20" r="1" />
     <path d="M2 3h3l2.5 11h11L21 7H6.2" />
+  </svg>
+)
+
+const boxIcon = (
+  <svg {...iconProps}>
+    <path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z" />
+    <path d="M3 7.5 12 12l9-4.5M12 12v9" />
   </svg>
 )
 
@@ -63,12 +70,13 @@ const receiptIcon = (
   </svg>
 )
 
-/** Secciones del header. Para habilitar una, sacale `locked`. */
+/** Secciones del menú desplegable. Para habilitar una, agregale `to`. */
 export const NAV_ITEMS: NavItem[] = [
-  { key: 'catalogo', label: 'Catálogo', icon: searchIcon },
-  { key: 'pedidos', label: 'Pedidos', icon: cartIcon, locked: true },
-  { key: 'ofertas', label: 'Ofertas', icon: tagIcon, locked: true },
-  { key: 'favoritos', label: 'Favoritos', icon: heartIcon, locked: true },
-  { key: 'vehiculos', label: 'Mis vehículos', icon: carIcon, locked: true },
-  { key: 'cuenta', label: 'Cuenta corriente', icon: receiptIcon, locked: true },
+  { key: 'catalogo', label: 'Catálogo', icon: searchIcon, to: '/' },
+  { key: 'carrito', label: 'Carrito', icon: cartIcon, to: '/carrito' },
+  { key: 'pedidos', label: 'Pedidos', icon: boxIcon },
+  { key: 'ofertas', label: 'Ofertas', icon: tagIcon },
+  { key: 'favoritos', label: 'Favoritos', icon: heartIcon },
+  { key: 'vehiculos', label: 'Mis vehículos', icon: carIcon },
+  { key: 'cuenta', label: 'Cuenta corriente', icon: receiptIcon },
 ]

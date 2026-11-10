@@ -5,4 +5,8 @@ export const queryKeys = {
     search: (query: string) => ['articles', 'search', query] as const,
   },
   warehouses: ['warehouses'] as const,
+  orders: {
+    all: ['orders'] as const,
+    history: ['orders', 'history'] as const,
+  },
 }

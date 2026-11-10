@@ -12,7 +12,7 @@ function box(code: string): ProductBox {
 }
 
 function repoWith(search: ArticlesRepository['search']): ArticlesRepository {
-  return { search, getWarehouses: async () => [] }
+  return { search, getWarehouses: async () => [], getOrders: vi.fn() }
 }
 
 function page(data: ProductBox[], pageNumber: number, hasMore: boolean, total: number): SearchResponse {

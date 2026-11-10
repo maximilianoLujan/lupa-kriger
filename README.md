@@ -14,6 +14,7 @@ MVP de un catálogo de repuestos de autos. Base limpia con React + TypeScript + 
 | TanStack Query | 5 | Datos del servidor: caché, paginado, reintentos |
 | Axios | 1 | Cliente HTTP con interceptores (token, refresh, errores) |
 | Zustand | 5 | Estado global del front (carrito) |
+| React Router | 7 | Navegación entre pantallas (`/` catálogo, `/carrito`) |
 | Vitest | 5 | Tests unitarios y de componentes (jsdom + Testing Library) |
 
 ## Requisitos
@@ -53,21 +54,24 @@ La app queda en `http://localhost:5173`.
 ├── public/               # Archivos estáticos servidos tal cual
 └── src/
     ├── main.tsx          # Monta la app en #root
-    ├── App.tsx           # Componente raíz
+    ├── App.tsx           # Componente raíz y rutas
     ├── index.css         # Importa Tailwind + tema de marca (@theme)
     ├── assets/           # Logo del cliente
     ├── auth/             # Contexto de sesión, hook useAuth y credenciales mock
-    ├── cart/             # Carrito en memoria (CartProvider, useCart)
+    ├── cart/             # Carrito global (Zustand) persistido en sessionStorage
     ├── components/
-    │   ├── ui/           # Button, Input
-    │   ├── catalog/      # ArticleCard, AlternativeRow, AddToCartButton, CartDrawer, StockBadge, SearchBar, ListHeader, NavBar, Highlight
+    │   ├── ui/           # Button, LinkButton, Input
+    │   ├── layout/       # AppHeader, SectionsMenu (menú desplegable de secciones), navItems
+    │   ├── catalog/      # ArticleCard, AlternativeRow, AddToCartButton, StockBadge, SearchBar, ListHeader, Highlight
+    │   ├── cart/         # CartItems (carrito en la página /carrito)
+    │   ├── orders/       # OrdersHistory (scroll infinito), OrderCard, OrderStatusChip
     │   └── Logo.tsx
     ├── config/env.ts     # Lee VITE_DATA_SOURCE y VITE_API_URL
-    ├── data/articles/    # Repositorio de artículos: contrato, mock y API
-    ├── hooks/            # useArticlesSearch, useDebouncedValue
-    ├── pages/            # LoginPage, CatalogPage
-    ├── types/            # Tipos del dominio (User, ProductBox, AlternativeArticle, Warehouse)
-    ├── utils/            # formatPrice, text (normalizar y tokenizar búsquedas)
+    ├── data/articles/    # Repositorio de artículos y pedidos: contrato, mock (12 artículos, 20 pedidos) y API
+    ├── hooks/            # useArticlesSearch, useOrdersHistory, useInfiniteScroll, useWarehouses, useDebouncedValue
+    ├── pages/            # LoginPage, CatalogPage, CartPage (carrito + historial de pedidos)
+    ├── types/            # Tipos del dominio (User, ProductBox, AlternativeArticle, Warehouse, Order)
+    ├── utils/            # formatPrice, formatDate, text (normalizar y tokenizar búsquedas)
     └── test/             # Setup de Vitest y helpers de render
 ```
 
