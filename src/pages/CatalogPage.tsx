@@ -27,9 +27,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
 
   return (
     <div className="min-h-dvh bg-canvas">
-      <AppHeader>
-        <SearchBar value={query} onChange={setQuery} />
-      </AppHeader>
+      <AppHeader search={<SearchBar value={query} onChange={setQuery} />} />
 
       <main className="mx-auto max-w-6xl space-y-3 px-4 py-4">
         <div className="flex items-center justify-between text-xs text-ink-soft">

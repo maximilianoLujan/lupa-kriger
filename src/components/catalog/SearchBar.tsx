@@ -28,7 +28,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         placeholder="Buscar por repuesto, código, marca o modelo"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-12 w-full rounded-xl border border-line bg-white pr-10 pl-11 text-base text-ink shadow-sm placeholder:text-ink-soft focus:border-brand focus:ring-4 focus:ring-brand/30 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+        className="h-11 w-full rounded-xl border border-line bg-white pr-10 pl-11 text-base text-ink shadow-sm placeholder:text-ink-soft focus:border-brand focus:ring-4 focus:ring-brand/30 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value && (
         <button

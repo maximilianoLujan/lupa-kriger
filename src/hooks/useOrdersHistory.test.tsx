@@ -8,7 +8,7 @@ import type { Order, OrdersResponse } from '../types/order'
 import { useOrdersHistory } from './useOrdersHistory'
 
 function order(id: string): Order {
-  return { id, number: id, createdAt: '2026-01-01T00:00:00Z', status: 'entregado', items: [], total: 0 }
+  return { id, number: id, createdAt: '2026-01-01T00:00:00Z', status: 'completed', items: [], total: 0 }
 }
 
 function repoWith(getOrders: ArticlesRepository['getOrders']): ArticlesRepository {

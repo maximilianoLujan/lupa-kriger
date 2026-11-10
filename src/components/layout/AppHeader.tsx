@@ -6,27 +6,34 @@ import { Logo } from '../Logo'
 import { SectionsMenu } from './SectionsMenu'
 
 interface AppHeaderProps {
-  /** Contenido extra debajo de la fila principal (ej. la barra de búsqueda del catálogo). */
+  /**
+   * Buscador: va entre el logo y el perfil, con todo el ancho que sobra, para darle protagonismo a los artículos.
+   * En celular baja a una segunda fila a lo ancho.
+   */
+  search?: ReactNode
+  /** Contenido extra debajo de la fila principal. */
   children?: ReactNode
 }
 
 /**
- * Header fijo de todas las pantallas: logo, usuario, acceso al carrito (con cantidad),
- * menú de secciones y salir. Mobile first: el nombre del usuario aparece desde `sm`.
+ * Header fijo de todas las pantallas: logo, buscador (si la pantalla lo tiene), usuario, acceso al carrito (con
+ * cantidad), menú de secciones y salir. Mobile first: el nombre del usuario aparece desde `sm`.
  */
-export function AppHeader({ children }: AppHeaderProps) {
+export function AppHeader({ search, children }: AppHeaderProps) {
   const { user, logout } = useAuth()
   const { count } = useCart()
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
       <div className="mx-auto max-w-6xl space-y-3 px-4 pt-3 pb-3">
-        <div className="flex items-center justify-between gap-3">
+        {/* En celular el buscador envuelve a una segunda fila (basis-full); desde `sm` ocupa el medio. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-3 sm:flex-nowrap">
           <NavLink to="/" aria-label="Ir al catálogo" className="shrink-0">
             <Logo className="max-w-[8.5rem] sm:max-w-[10rem]" />
           </NavLink>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="hidden items-center gap-2 rounded-full bg-canvas py-1.5 pr-4 pl-1.5 text-ink ring-1 ring-line sm:flex">
+          {search && <div className="order-last basis-full sm:order-none sm:min-w-0 sm:flex-1 sm:basis-auto">{search}</div>}
+          <div className="ml-auto flex shrink-0 items-center gap-2 text-sm">
+            <span className="hidden items-center gap-2 rounded-full bg-canvas py-1.5 pr-4 pl-1.5 text-ink ring-1 ring-line lg:flex">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
                 {initials(user?.name)}
               </span>

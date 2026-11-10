@@ -21,7 +21,7 @@ describe('OrdersHistory', () => {
     await setup()
     expect(screen.getAllByRole('article')).toHaveLength(10)
     expect(screen.getByText('10 de 20 pedidos')).toBeInTheDocument()
-    expect(screen.getByRole('article', { name: 'Pedido P-000120' })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: 'Nota de pedido 00000120' })).toBeInTheDocument()
     expect(screen.getByTestId('orders-sentinel')).toBeInTheDocument()
     expect(observedTargets()).toContain(screen.getByTestId('orders-sentinel'))
     expect(screen.queryByRole('button', { name: 'Cargar más pedidos' })).not.toBeInTheDocument()

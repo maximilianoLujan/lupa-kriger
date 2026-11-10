@@ -5,13 +5,13 @@ import type { Order } from '../../types/order'
 import { OrderCard } from './OrderCard'
 
 const order: Order = {
-  id: '1',
-  number: 'P-000120',
+  id: '120',
+  number: 'Nota de pedido 00000120',
   createdAt: '2026-11-09T10:12:00-03:00',
-  status: 'pendiente',
+  status: 'pending',
   items: [
-    { articleCode: 'a', particularCode: 'FR-1024', brandName: 'FRIC-ROT', description: 'Pastilla freno', quantity: 2, unitPrice: 28900 },
-    { articleCode: 'b', particularCode: 'W 712/75', brandName: 'MANN', description: 'Filtro aceite', quantity: 4, unitPrice: 9800 },
+    { articleCode: 'a', particularCode: 'FR-1024', brandName: 'FRIC-ROT', description: 'Pastilla freno', quantity: 2, unitPrice: 28900, total: 57800 },
+    { articleCode: 'b', particularCode: 'W 712/75', brandName: 'MANN', description: 'Filtro aceite', quantity: 4, unitPrice: 9800, total: 39200 },
   ],
   total: 97000,
 }
@@ -19,8 +19,8 @@ const order: Order = {
 describe('OrderCard', () => {
   it('muestra número, fecha, estado, cantidades y total', () => {
     render(<OrderCard order={order} />)
-    const card = screen.getByRole('article', { name: 'Pedido P-000120' })
-    expect(within(card).getByText('P-000120')).toBeInTheDocument()
+    const card = screen.getByRole('article', { name: 'Nota de pedido 00000120' })
+    expect(within(card).getByText('Nota de pedido 00000120')).toBeInTheDocument()
     expect(within(card).getByText('Pendiente')).toBeInTheDocument()
     expect(within(card).getByText(/9 nov 2026/)).toBeInTheDocument()
     expect(within(card).getByText(/2 artículos · 6 unidades/)).toBeInTheDocument()
@@ -43,17 +43,27 @@ describe('OrderCard', () => {
     expect(screen.queryByText('Pastilla freno')).not.toBeInTheDocument()
   })
 
+  it('el importe del renglón es el que manda la API, no cantidad por precio', async () => {
+    const conDescuento = { ...order, items: [{ ...order.items[0], total: 50000 }] }
+    render(<OrderCard order={conDescuento} />)
+    await userEvent.click(screen.getByRole('button', { expanded: false }))
+    expect(screen.getByText('$ 50.000')).toBeInTheDocument()
+    expect(screen.queryByText('$ 57.800')).not.toBeInTheDocument()
+  })
+
   it('usa singular para un solo artículo y una sola unidad', () => {
     render(<OrderCard order={{ ...order, items: [{ ...order.items[0], quantity: 1 }] }} />)
     expect(screen.getByText(/1 artículo · 1 unidad$/)).toBeInTheDocument()
   })
 
-  it('los estados finales se ven en neutro y los cancelados tachados', () => {
-    const { rerender } = render(<OrderCard order={{ ...order, status: 'entregado' }} />)
-    expect(screen.getByText('Entregado')).toHaveClass('bg-canvas')
-    rerender(<OrderCard order={{ ...order, status: 'cancelado' }} />)
+  it('los estados en curso llevan el rojo de marca, los finales van en neutro y los cancelados tachados', () => {
+    const { rerender } = render(<OrderCard order={{ ...order, status: 'completed' }} />)
+    expect(screen.getByText('Completado')).toHaveClass('bg-canvas')
+    rerender(<OrderCard order={{ ...order, status: 'cancelled' }} />)
     expect(screen.getByText('Cancelado')).toHaveClass('line-through')
-    rerender(<OrderCard order={{ ...order, status: 'enviado' }} />)
-    expect(screen.getByText('Enviado')).toHaveClass('ring-brand')
+    rerender(<OrderCard order={{ ...order, status: 'preparing' }} />)
+    expect(screen.getByText('En preparación')).toHaveClass('ring-brand')
+    rerender(<OrderCard order={{ ...order, status: 'partial' }} />)
+    expect(screen.getByText('Entrega parcial')).toHaveClass('ring-brand')
   })
 })

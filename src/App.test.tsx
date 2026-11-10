@@ -29,7 +29,7 @@ describe('App', () => {
     await user.click(screen.getByRole('link', { name: 'Ir al carrito' }))
     expect(screen.getByRole('heading', { name: 'Tu carrito' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Historial de pedidos' })).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByRole('article', { name: 'Pedido P-000120' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('article', { name: 'Nota de pedido 00000120' })).toBeInTheDocument())
 
     // Cada pantalla monta su propio header: el botón Salir se busca de nuevo.
     await user.click(screen.getByRole('button', { name: 'Salir' }))

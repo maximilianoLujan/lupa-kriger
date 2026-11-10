@@ -125,13 +125,13 @@ describe('ApiArticlesRepository.getOrders', () => {
       items: [
         {
           id: '77',
-          number: 'P-000077',
+          number: 'Nota de pedido 00000077',
           createdAt: '2026-11-09T10:12:00-03:00',
-          status: 'ENVIADO',
-          total: '38700.00',
+          status: 'partial',
+          total: '67600.00',
           items: [
-            { code: 'FR-1024', name: 'Pastilla freno', brandName: 'Fric-Rot', quantity: 1, unitPrice: '28900.00' },
-            { code: 'W 712/75', name: 'Filtro aceite', brandName: null, quantity: 1, unitPrice: '9800.00' },
+            { code: 'FR-1024', name: 'Pastilla freno', brandName: 'Fric-Rot', quantity: '2.000', unitPrice: '28900.00', total: '57800.00' },
+            { code: 'W 712/75', name: 'Filtro aceite', brandName: null, quantity: '1.000', unitPrice: '9800.00', total: '9800.00' },
           ],
         },
       ],
@@ -152,13 +152,13 @@ describe('ApiArticlesRepository.getOrders', () => {
       data: [
         {
           id: '77',
-          number: 'P-000077',
+          number: 'Nota de pedido 00000077',
           createdAt: '2026-11-09T10:12:00-03:00',
-          status: 'enviado',
-          total: 38700,
+          status: 'partial',
+          total: 67600,
           items: [
-            { articleCode: 'FR-1024', particularCode: 'FR-1024', brandName: 'Fric-Rot', description: 'Pastilla freno', quantity: 1, unitPrice: 28900 },
-            { articleCode: 'W 712/75', particularCode: 'W 712/75', brandName: '', description: 'Filtro aceite', quantity: 1, unitPrice: 9800 },
+            { articleCode: 'FR-1024', particularCode: 'FR-1024', brandName: 'Fric-Rot', description: 'Pastilla freno', quantity: 2, unitPrice: 28900, total: 57800 },
+            { articleCode: 'W 712/75', particularCode: 'W 712/75', brandName: '', description: 'Filtro aceite', quantity: 1, unitPrice: 9800, total: 9800 },
           ],
         },
       ],
@@ -166,10 +166,10 @@ describe('ApiArticlesRepository.getOrders', () => {
   })
 
   it('un estado desconocido se muestra como pendiente', async () => {
-    const order = { id: '1', number: 'P-1', createdAt: '2026-01-01T00:00:00Z', status: 'RARO', total: '0', items: [] }
+    const order = { id: '1', number: 'Nota de pedido 00000001', createdAt: '2026-01-01T00:00:00Z', status: 'RARO', total: '0', items: [] }
     const { http } = replyWith(200, { items: [order], page: 1, pageSize: 10, hasMore: false, total: 1 })
     const res = await new ApiArticlesRepository(http).getOrders({ page: 1 })
-    expect(res.data[0].status).toBe('pendiente')
+    expect(res.data[0].status).toBe('pending')
   })
 
   it('propaga los errores HTTP', async () => {

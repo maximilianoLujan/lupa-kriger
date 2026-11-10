@@ -26,7 +26,7 @@ function setup(route = '/') {
   const user = userEvent.setup()
   renderWithProviders(
     <>
-      <AppHeader>
+      <AppHeader search={<input type="search" aria-label="Buscar" />}>
         <p>Contenido extra</p>
       </AppHeader>
       <Routes>
@@ -45,6 +45,17 @@ describe('AppHeader', () => {
     expect(screen.getByText('Gabriel Kriger')).toBeInTheDocument()
     expect(screen.getByText('GK')).toBeInTheDocument()
     expect(screen.getByText('Contenido extra')).toBeInTheDocument()
+  })
+
+  it('el buscador va en la fila principal, entre el logo y las acciones', () => {
+    setup()
+    const row = screen.getByRole('link', { name: 'Ir al catálogo' }).parentElement!
+    const children = [...row.children]
+    const logoIndex = children.findIndex((el) => el.contains(screen.getByRole('link', { name: 'Ir al catálogo' })))
+    const searchIndex = children.findIndex((el) => el.contains(screen.getByRole('searchbox', { name: 'Buscar' })))
+    const actionsIndex = children.findIndex((el) => el.contains(screen.getByRole('button', { name: 'Salir' })))
+    expect(logoIndex).toBeLessThan(searchIndex)
+    expect(searchIndex).toBeLessThan(actionsIndex)
   })
 
   it('el carrito lleva a /carrito y muestra la cantidad', async () => {

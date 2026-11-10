@@ -50,13 +50,19 @@ interface ApiOrderItem {
   code: string
   name: string
   brandName: string | null
-  quantity: number
+  /** Cantidad decimal ("2.000"). */
+  quantity: string
+  /** Precio unitario final con IVA al momento del pedido. */
   unitPrice: string
+  /** Importe del renglón con IVA y descuentos. */
+  total: string
 }
 interface ApiOrder {
   id: string
+  /** Título del comprobante: "Nota de pedido 00000007". */
   number: string
   createdAt: string
+  /** pending | preparing | partial | completed | cancelled. */
   status: string
   total: string
   items: ApiOrderItem[]
@@ -75,7 +81,9 @@ interface ApiOrdersResponse {
  *
  *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
  *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
- *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total } (del más nuevo al más viejo)
+ *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total }: las notas de pedido
+ *                                                        de la ficha de cliente con el mail del usuario, de la más
+ *                                                        nueva a la más vieja (lupaListOrders)
  *   GET /v1/public/lupa/photos?token=…&variant=thumb  → la foto (ruta firmada que viene en `photoUrl`; el navegador
  *                                                        la carga sin token de sesión)
  */
@@ -165,12 +173,12 @@ function toAlternative(a: ApiAlternative): AlternativeArticle {
   }
 }
 
-const ORDER_STATUSES: readonly OrderStatus[] = ['pendiente', 'confirmado', 'enviado', 'entregado', 'cancelado']
+const ORDER_STATUSES: readonly OrderStatus[] = ['pending', 'preparing', 'partial', 'completed', 'cancelled']
 
-/** Un estado desconocido de la API se muestra como pendiente antes que romper la pantalla. */
+/** Un estado que la app no conoce se muestra como pendiente antes que romper la pantalla. */
 function toOrderStatus(status: string): OrderStatus {
   const normalized = status.toLowerCase() as OrderStatus
-  return ORDER_STATUSES.includes(normalized) ? normalized : 'pendiente'
+  return ORDER_STATUSES.includes(normalized) ? normalized : 'pending'
 }
 
 function toOrderItem(item: ApiOrderItem): OrderItem {
@@ -179,8 +187,9 @@ function toOrderItem(item: ApiOrderItem): OrderItem {
     particularCode: item.code,
     brandName: item.brandName ?? '',
     description: item.name,
-    quantity: item.quantity,
+    quantity: Number(item.quantity),
     unitPrice: Number(item.unitPrice),
+    total: Number(item.total),
   }
 }
 

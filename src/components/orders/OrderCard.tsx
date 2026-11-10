@@ -11,7 +11,7 @@ export function OrderCard({ order }: { order: Order }) {
   const units = order.items.reduce((n, i) => n + i.quantity, 0)
 
   return (
-    <article aria-label={`Pedido ${order.number}`} className="rounded-2xl bg-white shadow-sm ring-1 ring-line">
+    <article aria-label={order.number} className="rounded-2xl bg-white shadow-sm ring-1 ring-line">
       <button
         type="button"
         aria-expanded={open}
@@ -60,7 +60,7 @@ export function OrderCard({ order }: { order: Order }) {
               <span className="whitespace-nowrap text-ink-soft tabular-nums">
                 {item.quantity} × $ {formatPrice(item.unitPrice)}
               </span>
-              <span className="w-20 text-right font-bold text-ink tabular-nums">$ {formatPrice(item.quantity * item.unitPrice)}</span>
+              <span className="w-20 text-right font-bold text-ink tabular-nums">$ {formatPrice(item.total)}</span>
             </li>
           ))}
         </ul>

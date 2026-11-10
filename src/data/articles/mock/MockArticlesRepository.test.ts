@@ -117,15 +117,15 @@ describe('MockArticlesRepository.getOrders', () => {
     expect(res.data).toHaveLength(10)
     expect(res.page).toBe(1)
     expect(res.hasMore).toBe(true)
-    expect(res.data[0].number).toBe('P-000120')
-    expect(res.data[9].number).toBe('P-000111')
+    expect(res.data[0].number).toBe('Nota de pedido 00000120')
+    expect(res.data[9].number).toBe('Nota de pedido 00000111')
   })
 
   it('la segunda página es la última', async () => {
     const res = await repo.getOrders({ page: 2 })
     expect(res.data).toHaveLength(10)
     expect(res.hasMore).toBe(false)
-    expect(res.data.at(-1)?.number).toBe('P-000101')
+    expect(res.data.at(-1)?.number).toBe('Nota de pedido 00000101')
   })
 
   it('respeta pageSize y corrige páginas menores a 1', async () => {
@@ -135,7 +135,7 @@ describe('MockArticlesRepository.getOrders', () => {
   })
 
   it('ordena por fecha aunque los pedidos inyectados vengan desordenados', async () => {
-    const base = { id: '', status: 'entregado' as const, items: [], total: 0 }
+    const base = { id: '', status: 'completed' as const, items: [], total: 0 }
     const custom = new MockArticlesRepository({
       delayMs: 0,
       orders: [
