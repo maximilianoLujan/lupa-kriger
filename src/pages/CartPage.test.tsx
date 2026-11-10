@@ -79,6 +79,20 @@ describe('CartPage', () => {
     expect(within(history).getByText('Esos son todos tus pedidos.')).toBeInTheDocument()
   })
 
+  it('al enviar el pedido, el historial se actualiza y el nuevo aparece primero', async () => {
+    useCartStore.setState({ items: [{ article, quantity: 2 }] })
+    const { user } = await setup(new MockArticlesRepository({ delayMs: 0 }))
+    expect(screen.getByText('10 de 20 pedidos')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Enviar pedido' }))
+
+    expect(await screen.findByText('¡Pedido enviado!')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('10 de 21 pedidos')).toBeInTheDocument())
+    const history = screen.getByRole('region', { name: 'Historial de pedidos' })
+    expect(within(history).getAllByRole('article')[0]).toHaveAccessibleName('Nota de pedido 00000121')
+    expect(screen.getByRole('link', { name: 'Ir al carrito' })).toBeInTheDocument() // sin contador: carrito vacío
+  })
+
   it('sin pedidos muestra el estado vacío amigable', async () => {
     await setup(new MockArticlesRepository({ delayMs: 0, orders: [] }))
     expect(screen.getByRole('heading', { name: 'Todavía no tenés pedidos' })).toBeInTheDocument()

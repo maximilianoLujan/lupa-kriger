@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MOCK_ARTICLES } from './articles.mock'
+import { MOCK_ORDERS } from './orders.mock'
 import { MockArticlesRepository } from './MockArticlesRepository'
 import { MOCK_WAREHOUSES } from './warehouses.mock'
 
@@ -151,5 +152,33 @@ describe('MockArticlesRepository.getOrders', () => {
   it('sin pedidos devuelve vacío', async () => {
     const empty = new MockArticlesRepository({ delayMs: 0, orders: [] })
     expect(await empty.getOrders({ page: 1 })).toEqual({ data: [], page: 1, hasMore: false, total: 0 })
+  })
+})
+
+describe('MockArticlesRepository.createOrder', () => {
+  it('arma el pedido con los precios del mock, le da el número siguiente y lo suma primero al historial', async () => {
+    const own = new MockArticlesRepository({ delayMs: 0 })
+    const order = await own.createOrder({ items: [{ code: 'FR-1024', quantity: 2 }, { code: 'W 712/75', quantity: 1 }] })
+
+    expect(order).toMatchObject({ id: '121', number: 'Nota de pedido 00000121', status: 'pending', total: 67600 })
+    expect(order.items).toEqual([
+      { articleCode: '10001-1', particularCode: 'FR-1024', brandName: 'FRIC-ROT', description: 'Pastilla freno delantera Fric-Rot', quantity: 2, unitPrice: 28900, total: 57800 },
+      { articleCode: '10002-1', particularCode: 'W 712/75', brandName: 'MANN', description: 'Filtro de aceite Mann', quantity: 1, unitPrice: 9800, total: 9800 },
+    ])
+    const page = await own.getOrders({ page: 1 })
+    expect(page.total).toBe(21)
+    expect(page.data[0].id).toBe('121')
+  })
+
+  it('no toca la constante compartida: otro repositorio sigue con 20 pedidos', async () => {
+    await new MockArticlesRepository({ delayMs: 0 }).createOrder({ items: [{ code: 'FR-1024', quantity: 1 }] })
+    expect((await repo.getOrders({ page: 1 })).total).toBe(20)
+    expect(MOCK_ORDERS).toHaveLength(20)
+  })
+
+  it('rechaza códigos que no existen con el mismo mensaje que la API', async () => {
+    await expect(repo.createOrder({ items: [{ code: 'NO-EXISTE', quantity: 1 }] })).rejects.toThrow(
+      'Estos artículos ya no están disponibles: NO-EXISTE',
+    )
   })
 })

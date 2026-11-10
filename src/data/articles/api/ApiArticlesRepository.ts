@@ -7,7 +7,7 @@ import type {
   SearchResponse,
   Warehouse,
 } from '../../../types/article'
-import type { Order, OrderItem, OrderStatus, OrdersResponse, PageParams } from '../../../types/order'
+import type { CreateOrderInput, Order, OrderItem, OrderStatus, OrdersResponse, PageParams } from '../../../types/order'
 import { DEFAULT_PAGE_SIZE, type ArticlesRepository } from '../repository'
 
 /** Lo que devuelve la API del ERP (módulo Lupa). Se traduce a los tipos de la app acá, y solo acá. */
@@ -84,6 +84,8 @@ interface ApiOrdersResponse {
  *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total }: las notas de pedido
  *                                                        de la ficha de cliente con el mail del usuario, de la más
  *                                                        nueva a la más vieja (lupaListOrders)
+ *   POST /v1/lupa/orders { items: [{ code, quantity }], notes } → el pedido creado, con la misma forma que el
+ *                                                        historial (lupaCreateOrder)
  *   GET /v1/public/lupa/photos?token=…&variant=thumb  → la foto (ruta firmada que viene en `photoUrl`; el navegador
  *                                                        la carga sin token de sesión)
  */
@@ -120,6 +122,15 @@ export class ApiArticlesRepository implements ArticlesRepository {
       hasMore: data.hasMore,
       total: data.total,
     }
+  }
+
+  async createOrder(input: CreateOrderInput): Promise<Order> {
+    const { data } = await this.http.post<ApiOrder>('/v1/lupa/orders', {
+      // La API recibe cantidades decimales como texto.
+      items: input.items.map((i) => ({ code: i.code, quantity: String(i.quantity) })),
+      ...(input.notes ? { notes: input.notes } : {}),
+    })
+    return toOrder(data)
   }
 }
 

@@ -30,6 +30,13 @@ export interface Order {
   total: number
 }
 
+/** Lo que se manda al enviar el carrito: cada repuesto por su código (el que ve el cliente) y la cantidad. */
+export interface CreateOrderInput {
+  items: { code: string; quantity: number }[]
+  /** Observaciones para la empresa (opcional). */
+  notes?: string
+}
+
 export interface PageParams {
   /** 1-based. */
   page: number

@@ -1,5 +1,5 @@
 import type { SearchParams, SearchResponse, Warehouse } from '../../types/article'
-import type { OrdersResponse, PageParams } from '../../types/order'
+import type { CreateOrderInput, Order, OrdersResponse, PageParams } from '../../types/order'
 
 /**
  * Contrato que cumplen todas las fuentes de datos (artículos y pedidos).
@@ -10,6 +10,8 @@ export interface ArticlesRepository {
   getWarehouses(): Promise<Warehouse[]>
   /** Historial de pedidos del cliente, del más nuevo al más viejo, paginado. */
   getOrders(params: PageParams): Promise<OrdersResponse>
+  /** Envía el carrito como un pedido nuevo y devuelve el pedido creado, tal como va a verse en el historial. */
+  createOrder(input: CreateOrderInput): Promise<Order>
 }
 
 export const DEFAULT_PAGE_SIZE = 10

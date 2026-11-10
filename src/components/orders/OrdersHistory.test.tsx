@@ -61,6 +61,7 @@ describe('OrdersHistory', () => {
     const flaky: ArticlesRepository = {
       search: (p) => repo.search(p),
       getWarehouses: () => repo.getWarehouses(),
+      createOrder: (i) => repo.createOrder(i),
       getOrders: async (params) => {
         if (fail) throw new Error('Sin conexión')
         return repo.getOrders(params)

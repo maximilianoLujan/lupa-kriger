@@ -1,9 +1,9 @@
 import type { ProductBox, SearchParams, SearchResponse, Warehouse } from '../../../types/article'
-import type { Order, OrdersResponse, PageParams } from '../../../types/order'
+import type { CreateOrderInput, Order, OrderItem, OrdersResponse, PageParams } from '../../../types/order'
 import { normalizeText, tokenize } from '../../../utils/text'
 import { DEFAULT_PAGE_SIZE, type ArticlesRepository } from '../repository'
 import { MOCK_ARTICLES } from './articles.mock'
-import { MOCK_ORDERS } from './orders.mock'
+import { MOCK_ORDERS, orderTitle } from './orders.mock'
 import { MOCK_WAREHOUSES } from './warehouses.mock'
 
 interface MockOptions {
@@ -28,6 +28,7 @@ function searchableText(box: ProductBox): string {
 export class MockArticlesRepository implements ArticlesRepository {
   private readonly articles: ProductBox[]
   private readonly warehouses: Warehouse[]
+  /** Copia propia: los pedidos enviados se suman acá y no tocan la constante compartida. */
   private readonly orders: Order[]
   private readonly delayMs: number
 
@@ -39,7 +40,7 @@ export class MockArticlesRepository implements ArticlesRepository {
   }: MockOptions = {}) {
     this.articles = articles
     this.warehouses = warehouses
-    this.orders = orders
+    this.orders = [...orders]
     this.delayMs = delayMs
   }
 
@@ -84,6 +85,41 @@ export class MockArticlesRepository implements ArticlesRepository {
       hasMore: start + pageSize < sorted.length,
       total: sorted.length,
     }
+  }
+
+  /** Arma la nota de pedido con los precios actuales del mock y la suma al historial, como haría la API. */
+  async createOrder(input: CreateOrderInput): Promise<Order> {
+    await this.wait()
+
+    const alternatives = this.articles.flatMap((box) => box.alternatives)
+    const unavailable = [
+      ...new Set(input.items.map((i) => i.code).filter((code) => !alternatives.some((a) => a.particularCode === code))),
+    ]
+    if (unavailable.length) throw new Error(`Estos artículos ya no están disponibles: ${unavailable.join(', ')}`)
+
+    const items: OrderItem[] = input.items.map(({ code, quantity }) => {
+      const article = alternatives.find((a) => a.particularCode === code)!
+      return {
+        articleCode: article.articleCode,
+        particularCode: article.particularCode,
+        brandName: article.brandName,
+        description: article.description,
+        quantity,
+        unitPrice: article.priceList,
+        total: article.priceList * quantity,
+      }
+    })
+    const number = Math.max(0, ...this.orders.map((o) => Number(o.id) || 0)) + 1
+    const order: Order = {
+      id: String(number),
+      number: orderTitle(number),
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+      items,
+      total: items.reduce((sum, i) => sum + i.total, 0),
+    }
+    this.orders.push(order)
+    return order
   }
 
   private wait() {

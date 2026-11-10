@@ -69,6 +69,7 @@ describe('CatalogPage', () => {
       },
       getWarehouses: () => repo.getWarehouses(),
       getOrders: (p) => repo.getOrders(p),
+      createOrder: (i) => repo.createOrder(i),
     }
     const { user } = await setup(flaky)
     expect(screen.getByRole('alert')).toHaveTextContent('Sin conexión')
@@ -114,7 +115,7 @@ describe('CatalogPage', () => {
 
   it('no setea sucursales si se desmonta antes de la respuesta', async () => {
     const getWarehouses = vi.fn(() => new Promise<never>(() => {}))
-    const pending: ArticlesRepository = { search: (p) => repo.search(p), getWarehouses, getOrders: (p) => repo.getOrders(p) }
+    const pending: ArticlesRepository = { search: (p) => repo.search(p), getWarehouses, getOrders: (p) => repo.getOrders(p), createOrder: (i) => repo.createOrder(i) }
     sessionStorage.setItem('auth:user', JSON.stringify({ username: '123', name: 'G' }))
     const { unmount } = renderCatalog(pending)
     unmount()

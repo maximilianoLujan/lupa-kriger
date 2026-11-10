@@ -30,7 +30,7 @@ export function CartPage({ repository = articlesRepository }: CartPageProps) {
               </span>
             )}
           </div>
-          <CartItems />
+          <CartItems repository={repository} />
         </section>
 
         <section aria-labelledby="orders-heading" className="space-y-3">

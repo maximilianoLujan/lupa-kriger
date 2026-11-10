@@ -12,7 +12,7 @@ function order(id: string): Order {
 }
 
 function repoWith(getOrders: ArticlesRepository['getOrders']): ArticlesRepository {
-  return { search: vi.fn(), getWarehouses: vi.fn(), getOrders }
+  return { search: vi.fn(), getWarehouses: vi.fn(), getOrders, createOrder: vi.fn() }
 }
 
 function page(data: Order[], pageNumber: number, hasMore: boolean, total: number): OrdersResponse {

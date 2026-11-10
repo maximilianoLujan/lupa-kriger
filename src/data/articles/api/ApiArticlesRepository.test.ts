@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { SESSION_EXPIRED_MESSAGE } from '../../../lib/http'
-import { fakeHttp, replyWith } from '../../../test/fakeHttp'
+import { bodyOf, fakeHttp, replyWith } from '../../../test/fakeHttp'
 import { ApiArticlesRepository, photoSrc } from './ApiArticlesRepository'
 
 const EMPTY = { items: [], page: 1, pageSize: 10, hasMore: false, total: 0 }
@@ -174,5 +174,46 @@ describe('ApiArticlesRepository.getOrders', () => {
 
   it('propaga los errores HTTP', async () => {
     await expect(new ApiArticlesRepository(replyWith(500).http).getOrders({ page: 1 })).rejects.toMatchObject({ status: 500 })
+  })
+})
+
+describe('ApiArticlesRepository.createOrder', () => {
+  const created = {
+    id: '78',
+    number: 'Nota de pedido 00000078',
+    createdAt: '2026-11-10T12:00:00-03:00',
+    status: 'pending',
+    total: '4840.00',
+    items: [{ code: 'BK-6', name: 'Bujía', brandName: 'NGK', quantity: '2.000', unitPrice: '2420.00', total: '4840.00' }],
+  }
+
+  it('manda los códigos con la cantidad como texto y traduce el pedido creado', async () => {
+    const { http, calls } = replyWith(201, created)
+    const order = await new ApiArticlesRepository(http).createOrder({ items: [{ code: 'BK-6', quantity: 2 }] })
+
+    expect(calls[0].method).toBe('post')
+    expect(calls[0].url).toBe('/v1/lupa/orders')
+    expect(bodyOf(calls[0])).toEqual({ items: [{ code: 'BK-6', quantity: '2' }] })
+    expect(order).toEqual({
+      id: '78',
+      number: 'Nota de pedido 00000078',
+      createdAt: '2026-11-10T12:00:00-03:00',
+      status: 'pending',
+      total: 4840,
+      items: [{ articleCode: 'BK-6', particularCode: 'BK-6', brandName: 'NGK', description: 'Bujía', quantity: 2, unitPrice: 2420, total: 4840 }],
+    })
+  })
+
+  it('manda las observaciones solo si las hay', async () => {
+    const { http, calls } = replyWith(201, created)
+    await new ApiArticlesRepository(http).createOrder({ items: [{ code: 'BK-6', quantity: 1 }], notes: 'Lo retiro el lunes' })
+    expect(bodyOf(calls[0])).toEqual({ items: [{ code: 'BK-6', quantity: '1' }], notes: 'Lo retiro el lunes' })
+  })
+
+  it('un 400 de la API llega con su mensaje (ficha sin vincular, artículo inactivo)', async () => {
+    const { http } = replyWith(400, { statusCode: 400, error: 'Bad Request', message: 'Estos artículos ya no están disponibles: VIEJO-1' })
+    await expect(new ApiArticlesRepository(http).createOrder({ items: [{ code: 'VIEJO-1', quantity: 1 }] })).rejects.toThrow(
+      'Estos artículos ya no están disponibles: VIEJO-1',
+    )
   })
 })
