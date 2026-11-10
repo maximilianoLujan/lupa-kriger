@@ -3,6 +3,7 @@ import type { CreateOrderInput, Order, OrderItem, OrdersResponse, PageParams } f
 import { normalizeText, tokenize } from '../../../utils/text'
 import { DEFAULT_PAGE_SIZE, type ArticlesRepository } from '../repository'
 import { MOCK_ARTICLES } from './articles.mock'
+import { findMockCustomer } from './customers.mock'
 import { MOCK_ORDERS, orderTitle } from './orders.mock'
 import { MOCK_WAREHOUSES } from './warehouses.mock'
 
@@ -93,6 +94,10 @@ export class MockArticlesRepository implements ArticlesRepository {
    */
   async createOrder(input: CreateOrderInput): Promise<Order> {
     await this.wait()
+
+    if (!findMockCustomer(input.customerCode)) {
+      throw new Error(`No encontramos un cliente con el número ${input.customerCode.trim()}. Revisalo o consultá a la empresa.`)
+    }
 
     const alternatives = this.articles.flatMap((box) => box.alternatives)
     const unavailable = [

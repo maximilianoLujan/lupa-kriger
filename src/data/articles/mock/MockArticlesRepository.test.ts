@@ -158,7 +158,7 @@ describe('MockArticlesRepository.getOrders', () => {
 describe('MockArticlesRepository.createOrder', () => {
   it('arma el pedido con los precios del mock, le da el número siguiente y lo suma primero al historial', async () => {
     const own = new MockArticlesRepository({ delayMs: 0 })
-    const order = await own.createOrder({ items: [{ code: 'FR-1024', quantity: 2 }, { code: 'W 712/75', quantity: 1 }] })
+    const order = await own.createOrder({ customerCode: '1001', items: [{ code: 'FR-1024', quantity: 2 }, { code: 'W 712/75', quantity: 1 }] })
 
     expect(order).toMatchObject({ id: '121', number: 'Nota de pedido', status: 'pending', total: 67600 })
     expect(order.items).toEqual([
@@ -171,14 +171,23 @@ describe('MockArticlesRepository.createOrder', () => {
   })
 
   it('no toca la constante compartida: otro repositorio sigue con 20 pedidos', async () => {
-    await new MockArticlesRepository({ delayMs: 0 }).createOrder({ items: [{ code: 'FR-1024', quantity: 1 }] })
+    await new MockArticlesRepository({ delayMs: 0 }).createOrder({ customerCode: '1001', items: [{ code: 'FR-1024', quantity: 1 }] })
     expect((await repo.getOrders({ page: 1 })).total).toBe(20)
     expect(MOCK_ORDERS).toHaveLength(20)
   })
 
   it('rechaza códigos que no existen con el mismo mensaje que la API', async () => {
-    await expect(repo.createOrder({ items: [{ code: 'NO-EXISTE', quantity: 1 }] })).rejects.toThrow(
+    await expect(repo.createOrder({ customerCode: '1001', items: [{ code: 'NO-EXISTE', quantity: 1 }] })).rejects.toThrow(
       'Estos artículos ya no están disponibles: NO-EXISTE',
     )
+  })
+
+  it('acepta el número de cliente con o sin ceros a la izquierda y rechaza los desconocidos con un mensaje amigable', async () => {
+    const own = new MockArticlesRepository({ delayMs: 0 })
+    await expect(own.createOrder({ customerCode: ' 001002 ', items: [{ code: 'FR-1024', quantity: 1 }] })).resolves.toBeDefined()
+    await expect(own.createOrder({ customerCode: '9999', items: [{ code: 'FR-1024', quantity: 1 }] })).rejects.toThrow(
+      'No encontramos un cliente con el número 9999. Revisalo o consultá a la empresa.',
+    )
+    expect((await own.getOrders({ page: 1 })).total).toBe(21)
   })
 })

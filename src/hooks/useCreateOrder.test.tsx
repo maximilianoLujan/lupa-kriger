@@ -25,10 +25,10 @@ describe('useCreateOrder', () => {
     const createOrder = vi.fn(async () => created)
     const { result } = renderHook(() => useCreateOrder(repoWith(createOrder)), { wrapper: wrapper(client) })
 
-    act(() => result.current.mutate({ items: [{ code: 'FR-1024', quantity: 2 }] }))
+    act(() => result.current.mutate({ customerCode: '1001', items: [{ code: 'FR-1024', quantity: 2 }] }))
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(createOrder).toHaveBeenCalledWith({ items: [{ code: 'FR-1024', quantity: 2 }] })
+    expect(createOrder).toHaveBeenCalledWith({ customerCode: '1001', items: [{ code: 'FR-1024', quantity: 2 }] })
     expect(result.current.data).toEqual(created)
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.orders.all })
   })
@@ -41,7 +41,7 @@ describe('useCreateOrder', () => {
     })
     const { result } = renderHook(() => useCreateOrder(repo), { wrapper: wrapper(client) })
 
-    act(() => result.current.mutate({ items: [{ code: 'FR-1024', quantity: 1 }] }))
+    act(() => result.current.mutate({ customerCode: '1001', items: [{ code: 'FR-1024', quantity: 1 }] }))
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(result.current.error?.message).toBe('Sin conexión')
     expect(invalidate).not.toHaveBeenCalled()

@@ -126,6 +126,7 @@ export class ApiArticlesRepository implements ArticlesRepository {
 
   async createOrder(input: CreateOrderInput): Promise<Order> {
     const { data } = await this.http.post<ApiOrder>('/v1/lupa/orders', {
+      customerCode: input.customerCode.trim(),
       // La API recibe cantidades decimales como texto.
       items: input.items.map((i) => ({ code: i.code, quantity: String(i.quantity) })),
       ...(input.notes ? { notes: input.notes } : {}),

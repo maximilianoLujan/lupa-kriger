@@ -84,6 +84,7 @@ describe('CartPage', () => {
     const { user } = await setup(new MockArticlesRepository({ delayMs: 0 }))
     expect(screen.getByText('10 de 20 pedidos')).toBeInTheDocument()
 
+    await user.type(screen.getByRole('textbox', { name: 'Tu número de cliente' }), '1001')
     await user.click(screen.getByRole('button', { name: 'Enviar pedido' }))
 
     expect(await screen.findByText('¡Pedido enviado!')).toBeInTheDocument()

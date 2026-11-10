@@ -9,5 +9,6 @@ installFakeIntersectionObserver()
 afterEach(() => {
   cleanup()
   sessionStorage.clear()
+  localStorage.clear()
   useCartStore.setState({ items: [] })
 })

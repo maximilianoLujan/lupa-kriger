@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useCart } from '../../cart/useCart'
 import type { ArticlesRepository } from '../../data/articles'
 import { useCreateOrder } from '../../hooks/useCreateOrder'
@@ -13,30 +13,68 @@ interface CartItemsProps {
   repository: ArticlesRepository
 }
 
+/** El último número de cliente usado se recuerda en este navegador, para no volver a escribirlo en cada pedido. */
+const CUSTOMER_CODE_KEY = 'cart:customerCode'
+
+function readSavedCustomerCode(): string {
+  try {
+    return localStorage.getItem(CUSTOMER_CODE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function saveCustomerCode(code: string) {
+  try {
+    localStorage.setItem(CUSTOMER_CODE_KEY, code)
+  } catch {
+    // Sin storage (modo privado, bloqueado): se pide de nuevo la próxima vez.
+  }
+}
+
+const MISSING_CUSTOMER_CODE = 'Ingresá tu número de cliente para enviar el pedido.'
+
 /**
- * Contenido del carrito en la pantalla `/carrito`: renglones con cantidad editable, total y el envío del pedido.
- * Al enviarse, el carrito se vacía y queda la confirmación (el pedido entra pendiente de confirmación por la
- * empresa). Vacío, invita a volver al catálogo.
+ * Contenido del carrito en la pantalla `/carrito`: renglones con cantidad editable, total, el número de cliente y el
+ * envío del pedido. Al enviarse, el carrito se vacía y queda la confirmación (el pedido entra pendiente de
+ * confirmación por la empresa). Vacío, invita a volver al catálogo.
  */
 export function CartItems({ repository }: CartItemsProps) {
   const { items, count, total, setQuantity, remove, clear } = useCart()
   const createOrder = useCreateOrder(repository)
   const [sent, setSent] = useState<Order | null>(null)
+  const [customerCode, setCustomerCode] = useState(readSavedCustomerCode)
+  const [missingCode, setMissingCode] = useState(false)
+  const codeInput = useRef<HTMLInputElement>(null)
 
   if (sent) return <OrderSent order={sent} onDismiss={() => setSent(null)} />
   if (items.length === 0) return <CartEmpty />
 
   function send() {
+    const code = customerCode.trim()
+    if (!code) {
+      setMissingCode(true)
+      codeInput.current?.focus()
+      return
+    }
+    setMissingCode(false)
     createOrder.mutate(
-      { items: items.map(({ article, quantity }) => ({ code: article.particularCode, quantity })) },
+      { customerCode: code, items: items.map(({ article, quantity }) => ({ code: article.particularCode, quantity })) },
       {
         onSuccess: (order) => {
+          saveCustomerCode(code)
           clear()
           setSent(order)
         },
       },
     )
   }
+
+  const error = missingCode
+    ? MISSING_CUSTOMER_CODE
+    : createOrder.isError
+      ? errorMessage(createOrder.error, 'No se pudo enviar el pedido. Probá de nuevo.')
+      : null
 
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-line">
@@ -80,9 +118,37 @@ export function CartItems({ repository }: CartItemsProps) {
           </span>
           <span className="text-xl font-bold text-ink tabular-nums">$ {formatPrice(total)}</span>
         </div>
-        {createOrder.isError && (
+
+        <div>
+          <label htmlFor="customer-code" className="text-xs font-semibold text-ink">
+            Tu número de cliente
+          </label>
+          <input
+            ref={codeInput}
+            id="customer-code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="Ej.: 1024"
+            value={customerCode}
+            onChange={(e) => {
+              setCustomerCode(e.target.value)
+              if (e.target.value.trim()) setMissingCode(false)
+            }}
+            aria-describedby="customer-code-help"
+            aria-invalid={missingCode || undefined}
+            className={`mt-1 h-11 w-full rounded-xl border bg-white px-4 text-base text-ink tabular-nums shadow-sm placeholder:text-ink-soft focus:ring-4 focus:ring-brand/30 focus:outline-none sm:max-w-xs ${
+              missingCode ? 'border-brand' : 'border-line focus:border-brand'
+            }`}
+          />
+          <p id="customer-code-help" className="mt-1 text-xs text-ink-soft">
+            Es el número que figura en tus facturas o remitos. Si no lo tenés, pedíselo a la empresa.
+          </p>
+        </div>
+
+        {error && (
           <p role="alert" className="rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand-text">
-            {errorMessage(createOrder.error, 'No se pudo enviar el pedido. Probá de nuevo.')}
+            {error}
           </p>
         )}
         <div className="flex flex-col gap-2 sm:flex-row-reverse">

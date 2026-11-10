@@ -189,11 +189,11 @@ describe('ApiArticlesRepository.createOrder', () => {
 
   it('manda los códigos con la cantidad como texto y traduce el pedido creado', async () => {
     const { http, calls } = replyWith(201, created)
-    const order = await new ApiArticlesRepository(http).createOrder({ items: [{ code: 'BK-6', quantity: 2 }] })
+    const order = await new ApiArticlesRepository(http).createOrder({ customerCode: ' 1001 ', items: [{ code: 'BK-6', quantity: 2 }] })
 
     expect(calls[0].method).toBe('post')
     expect(calls[0].url).toBe('/v1/lupa/orders')
-    expect(bodyOf(calls[0])).toEqual({ items: [{ code: 'BK-6', quantity: '2' }] })
+    expect(bodyOf(calls[0])).toEqual({ customerCode: '1001', items: [{ code: 'BK-6', quantity: '2' }] })
     expect(order).toEqual({
       id: '78',
       number: 'Nota de pedido 00000078',
@@ -206,14 +206,14 @@ describe('ApiArticlesRepository.createOrder', () => {
 
   it('manda las observaciones solo si las hay', async () => {
     const { http, calls } = replyWith(201, created)
-    await new ApiArticlesRepository(http).createOrder({ items: [{ code: 'BK-6', quantity: 1 }], notes: 'Lo retiro el lunes' })
-    expect(bodyOf(calls[0])).toEqual({ items: [{ code: 'BK-6', quantity: '1' }], notes: 'Lo retiro el lunes' })
+    await new ApiArticlesRepository(http).createOrder({ customerCode: '1001', items: [{ code: 'BK-6', quantity: 1 }], notes: 'Lo retiro el lunes' })
+    expect(bodyOf(calls[0])).toEqual({ customerCode: '1001', items: [{ code: 'BK-6', quantity: '1' }], notes: 'Lo retiro el lunes' })
   })
 
-  it('un 400 de la API llega con su mensaje (ficha sin vincular, artículo inactivo)', async () => {
-    const { http } = replyWith(400, { statusCode: 400, error: 'Bad Request', message: 'Estos artículos ya no están disponibles: VIEJO-1' })
-    await expect(new ApiArticlesRepository(http).createOrder({ items: [{ code: 'VIEJO-1', quantity: 1 }] })).rejects.toThrow(
-      'Estos artículos ya no están disponibles: VIEJO-1',
+  it('un 400 de la API llega con su mensaje (número de cliente inexistente, artículo inactivo)', async () => {
+    const { http } = replyWith(400, { statusCode: 400, error: 'Bad Request', message: 'No encontramos un cliente con el número 9999. Revisalo o consultá a la empresa' })
+    await expect(new ApiArticlesRepository(http).createOrder({ customerCode: '9999', items: [{ code: 'BK-6', quantity: 1 }] })).rejects.toThrow(
+      'No encontramos un cliente con el número 9999',
     )
   })
 })
