@@ -46,6 +46,11 @@ describe('CartPage', () => {
     expect(screen.getByRole('button', { name: 'Secciones' })).toBeInTheDocument()
   })
 
+  it('el contenido tiene el mismo ancho que el catálogo', async () => {
+    await setup()
+    expect(screen.getByRole('main')).toHaveClass('max-w-6xl')
+  })
+
   it('con el carrito vacío invita a buscar y vuelve al catálogo', async () => {
     const { user } = await setup()
     expect(screen.getByRole('heading', { name: 'Tu carrito está vacío' })).toBeInTheDocument()
