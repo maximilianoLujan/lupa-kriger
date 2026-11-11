@@ -33,6 +33,21 @@ describe('stripCode', () => {
     expect(stripCode('ACEITE 85W140 X20LITROS', '140')).toBe('ACEITE 85W140 X20LITROS')
   })
 
+  it('saca el código de fabricante del principio aunque no sea idéntico al del artículo', () => {
+    expect(stripCode('011.0502 BUJE VW GOL VOYAGE PASSAT DE PARRILLA D', '011.0450-AXIOS')).toBe(
+      'BUJE VW GOL VOYAGE PASSAT DE PARRILLA D',
+    )
+    expect(stripCode('W-712/75 FILTRO DE ACEITE', 'X-1')).toBe('FILTRO DE ACEITE')
+    expect(stripCode('7701208174 CORREA', 'X-1')).toBe('CORREA')
+  })
+
+  it('deja medidas y normas al principio', () => {
+    expect(stripCode('85W140 ACEITE HIPOIDAL', 'X-1')).toBe('85W140 ACEITE HIPOIDAL')
+    expect(stripCode('10W-40 ACEITE SEMISINTETICO', 'X-1')).toBe('10W-40 ACEITE SEMISINTETICO')
+    expect(stripCode('12V BATERIA 75AH', 'X-1')).toBe('12V BATERIA 75AH')
+    expect(stripCode('2 LITROS', 'X-1')).toBe('2 LITROS')
+  })
+
   it('deja la descripción igual si no tiene el código o si era solo el código', () => {
     expect(stripCode('ACEITE HIPOIDAL', 'X-1')).toBe('ACEITE HIPOIDAL')
     expect(stripCode('FR-1024', 'FR-1024')).toBe('FR-1024')

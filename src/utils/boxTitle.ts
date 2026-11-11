@@ -15,12 +15,35 @@ export function stripCode(description: string, ...codes: string[]): string {
     const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(code)}(?![\\p{L}\\p{N}])`, 'giu')
     text = text.replace(pattern, ' ')
   }
-  const cleaned = text
+  const cleaned = stripLeadingCode(text, codes)
     .replace(/\(\s*\)|\[\s*\]/g, ' ')
     .replace(/\s+([-–—|/])(\s+[-–—|/])+\s+/g, ' $1 ')
     .replace(/\s+/g, ' ')
     .replace(EDGE_SEPARATORS, '')
   return cleaned || description.trim()
+}
+
+const alphanumeric = (value: string) => value.replace(/[^\p{L}\p{N}]/gu, '').toUpperCase()
+
+/**
+ * Muchas descripciones del ERP arrancan con un código de fabricante que no es idéntico al del artículo
+ * ("011.0502 BUJE VW GOL" con código "011.0450-AXIOS"). Se saca esa primera palabra cuando parece un código:
+ * tiene números y además empieza igual que el código del artículo, o es larga y con separadores o solo dígitos.
+ * Medidas y normas cortas ("85W140", "10W-40", "12V") se dejan.
+ */
+function stripLeadingCode(text: string, codes: string[]): string {
+  const match = /^\s*(\S+)\s+(.*)$/su.exec(text)
+  if (!match) return text
+  const [, first, rest] = match
+  const token = alphanumeric(first)
+  if (!/\d/.test(token) || !/\p{L}{2}/u.test(rest)) return text
+
+  const sharesPrefix = codes.some((code) => {
+    const c = alphanumeric(code)
+    return token.length >= 3 && c.length >= 3 && c.slice(0, 3) === token.slice(0, 3)
+  })
+  const looksLikeCode = token.length >= 6 && (/^\d+$/.test(first) || /[.\-/]/.test(first))
+  return sharesPrefix || looksLikeCode ? rest : text
 }
 
 function hasStock(article: AlternativeArticle): boolean {

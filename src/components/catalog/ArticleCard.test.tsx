@@ -28,11 +28,11 @@ const box: ProductBox = {
 }
 
 describe('ArticleCard', () => {
-  it('muestra código, descripción principal y detalles', () => {
+  it('muestra código y descripción, sin las líneas de detalle', () => {
     render(<ArticleCard box={box} warehouses={warehouses} query="" />)
     expect(screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === 'Cód. 1')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'PASTILLA DE FRENO' })).toBeInTheDocument()
-    expect(screen.getByText('JUEGO X4')).toBeInTheDocument()
+    expect(screen.queryByText('JUEGO X4')).not.toBeInTheDocument()
   })
 
   it('resalta el código del artículo cuando se busca por código', () => {
@@ -122,8 +122,8 @@ describe('ArticleCard', () => {
       />,
     )
     expect(screen.getByRole('heading', { name: 'PASTILLA COBREQ' })).toBeInTheDocument()
-    expect(screen.getByText('API GL-5')).toBeInTheDocument()
-    expect(screen.getByText('Grupo alternativo 5404')).toBeInTheDocument()
+    expect(screen.queryByText('API GL-5')).not.toBeInTheDocument()
+    expect(screen.queryByText('Grupo alternativo 5404')).not.toBeInTheDocument()
   })
 
   it('sin equivalentes ni detalles usa la descripción como título y sin modelos no muestra la sección', () => {

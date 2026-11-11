@@ -50,7 +50,7 @@ describe('CatalogPage', () => {
     expect(screen.getAllByRole('article')).toHaveLength(1)
     // El título de la cajita es la descripción del primer equivalente con stock.
     expect(screen.getByRole('heading', { name: /Bujía\s*NGK/ })).toBeInTheDocument()
-    expect(screen.getByText((_, el) => el?.tagName === 'MARK' && el.textContent === 'BUJIA')).toBeInTheDocument()
+    expect(screen.getByText((_, el) => el?.tagName === 'MARK' && el.textContent === 'Bujía')).toBeInTheDocument()
   })
 
   it('muestra estado vacío cuando no hay coincidencias', async () => {

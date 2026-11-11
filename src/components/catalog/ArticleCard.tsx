@@ -23,12 +23,11 @@ function groupByBrand(models: CompatibleModel[]) {
 }
 
 /**
- * Cajita del listado: foto, descripción, modelos compatibles y equivalentes.
+ * Cajita del listado: foto, código y descripción (sin las líneas de detalle), modelos compatibles y equivalentes.
  * En mobile se apila; en desktop es una fila con columnas, como lupa-web.
  */
 export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
   const title = boxTitle(box)
-  const otherDetails = box.details.filter((d) => d !== title)
   const brands = groupByBrand(box.compatibleModels)
 
   return (
@@ -49,11 +48,6 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
           <h3 className="text-sm leading-snug font-bold text-ink">
             <Highlight text={title} query={query} />
           </h3>
-          {otherDetails.map((d) => (
-            <p key={d} className="text-xs leading-snug text-ink-soft">
-              <Highlight text={d} query={query} />
-            </p>
-          ))}
         </div>
       </div>
 
