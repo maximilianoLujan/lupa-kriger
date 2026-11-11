@@ -48,7 +48,8 @@ describe('CatalogPage', () => {
 
     await waitFor(() => expect(screen.getByText('1 resultado')).toBeInTheDocument())
     expect(screen.getAllByRole('article')).toHaveLength(1)
-    expect(screen.getByText('NGK')).toBeInTheDocument()
+    // El título de la cajita es la descripción del primer equivalente con stock.
+    expect(screen.getByRole('heading', { name: /Bujía\s*NGK/ })).toBeInTheDocument()
     expect(screen.getByText((_, el) => el?.tagName === 'MARK' && el.textContent === 'BUJIA')).toBeInTheDocument()
   })
 

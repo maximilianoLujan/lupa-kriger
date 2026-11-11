@@ -1,4 +1,5 @@
 import type { CompatibleModel, ProductBox, Warehouse } from '../../types/article'
+import { boxTitle } from '../../utils/boxTitle'
 import { yearRange } from '../../utils/yearRange'
 import { AlternativeRow } from './AlternativeRow'
 import { ArticlePhoto } from './ArticlePhoto'
@@ -26,7 +27,8 @@ function groupByBrand(models: CompatibleModel[]) {
  * En mobile se apila; en desktop es una fila con columnas, como lupa-web.
  */
 export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
-  const [mainDetail, ...otherDetails] = box.details.length ? box.details : [box.description]
+  const title = boxTitle(box)
+  const otherDetails = box.details.filter((d) => d !== title)
   const brands = groupByBrand(box.compatibleModels)
 
   return (
@@ -36,7 +38,7 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
         <ArticlePhoto
           src={box.photoThumbUrl ?? box.photoUrl}
           fullSrc={box.photoUrl}
-          alt={box.description}
+          alt={title}
           className="h-20 w-20 shrink-0 lg:h-28 lg:w-28"
         />
 
@@ -45,7 +47,7 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
             Cód. <Highlight text={box.articleCode} query={query} />
           </p>
           <h3 className="text-sm leading-snug font-bold text-ink">
-            <Highlight text={mainDetail} query={query} />
+            <Highlight text={title} query={query} />
           </h3>
           {otherDetails.map((d) => (
             <p key={d} className="text-xs leading-snug text-ink-soft">

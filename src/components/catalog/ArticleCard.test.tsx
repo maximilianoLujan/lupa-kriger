@@ -22,7 +22,7 @@ const box: ProductBox = {
     { brandName: 'FIAT', model: 'UNO', until: '2010' },
   ],
   alternatives: [
-    { articleCode: '1-1', particularCode: 'FR-1024', description: 'Fric-Rot', brandCode: 'FRR', brandName: 'FRIC-ROT', priceList: 28900, stock: { GUA: 12, DEP: 0 } },
+    { articleCode: '1-1', particularCode: 'FR-1024', description: 'PASTILLA DE FRENO FR-1024', brandCode: 'FRR', brandName: 'FRIC-ROT', priceList: 28900, stock: { GUA: 12, DEP: 0 } },
     { articleCode: '1-2', particularCode: 'N-1037', description: 'Cobreq', brandCode: 'COB', brandName: 'COBREQ', priceList: 22100, stock: { GUA: 0 }, isOutlet: true },
   ],
 }
@@ -104,10 +104,32 @@ describe('ArticleCard', () => {
     expect(within(dialog).getByRole('img', { name: 'PASTILLA DE FRENO' })).toHaveAttribute('src', '/grande.jpg')
   })
 
-  it('sin detalles usa la descripción como título y sin modelos no muestra la sección', () => {
+  it('el título es la descripción del primer equivalente con stock, sin su código', () => {
+    const [fricRot, cobreq] = box.alternatives
     render(
       <ArticleCard
-        box={{ ...box, details: [], compatibleModels: [] }}
+        box={{
+          ...box,
+          description: '5404',
+          details: ['API GL-5', 'Grupo alternativo 5404'],
+          alternatives: [
+            { ...fricRot, description: 'PASTILLA SIN STOCK', stock: { GUA: 0 } },
+            { ...cobreq, description: 'N-1037 - PASTILLA COBREQ', stock: { DEP: 3 } },
+          ],
+        }}
+        warehouses={warehouses}
+        query=""
+      />,
+    )
+    expect(screen.getByRole('heading', { name: 'PASTILLA COBREQ' })).toBeInTheDocument()
+    expect(screen.getByText('API GL-5')).toBeInTheDocument()
+    expect(screen.getByText('Grupo alternativo 5404')).toBeInTheDocument()
+  })
+
+  it('sin equivalentes ni detalles usa la descripción como título y sin modelos no muestra la sección', () => {
+    render(
+      <ArticleCard
+        box={{ ...box, details: [], compatibleModels: [], alternatives: [] }}
         warehouses={warehouses}
         query=""
       />,
