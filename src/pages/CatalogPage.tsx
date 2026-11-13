@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArticleCard } from '../components/catalog/ArticleCard'
 import { ListHeader } from '../components/catalog/ListHeader'
 import { SearchBar } from '../components/catalog/SearchBar'
+import { StockFilter } from '../components/catalog/StockFilter'
 import { AppHeader } from '../components/layout/AppHeader'
 import { Button } from '../components/ui/Button'
 import { articlesRepository, type ArticlesRepository } from '../data/articles'
@@ -16,19 +17,22 @@ interface CatalogPageProps {
 
 export function CatalogPage({ repository = articlesRepository }: CatalogPageProps) {
   const [query, setQuery] = useState('')
+  const [onlyInStock, setOnlyInStock] = useState(false)
   const debouncedQuery = useDebouncedValue(query)
   const warehouses = useWarehouses(repository)
   const { items, hasMore, loading, error, loadMore, retry } = useArticlesSearch(
     repository,
     debouncedQuery,
+    onlyInStock,
   )
 
   const isEmpty = !loading && !error && items.length === 0
 
   return (
     <div className="min-h-dvh bg-canvas">
-      {/* Los títulos de columna van dentro del header fijo: quedan a la vista al hacer scroll. */}
+      {/* El filtro y los títulos de columna van dentro del header fijo: quedan a la vista al hacer scroll. */}
       <AppHeader search={<SearchBar value={query} onChange={setQuery} />}>
+        <StockFilter checked={onlyInStock} onChange={setOnlyInStock} />
         {items.length > 0 && <ListHeader warehouses={warehouses} />}
       </AppHeader>
 

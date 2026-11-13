@@ -95,6 +95,25 @@ describe('MockArticlesRepository.getWarehouses', () => {
 })
 
 describe('datos mock', () => {
+  it('con inStock deja solo los equivalentes con stock y saca las cajitas que se quedan sin ninguno', async () => {
+    const alternative = (code: string, quantity: number) => ({
+      articleCode: code, particularCode: code, description: code, brandCode: 'X', brandName: 'X', priceList: 1, stock: { GUA: quantity },
+    })
+    const article = (code: string, quantities: number[]) => ({
+      articleCode: code, description: `FILTRO ${code}`, details: [], compatibleModels: [],
+      alternatives: quantities.map((q, i) => alternative(`${code}-${i}`, q)),
+    })
+    const stocked = new MockArticlesRepository({ delayMs: 0, articles: [article('A', [3, 0]), article('B', [0, 0]), article('C', [1])] })
+
+    const filtered = await stocked.search({ query: 'filtro', page: 1, inStock: true })
+    expect(filtered.total).toBe(2)
+    expect(filtered.data.map((b) => b.alternatives.map((a) => a.particularCode))).toEqual([['A-0'], ['C-0']])
+
+    const all = await stocked.search({ query: 'filtro', page: 1 })
+    expect(all.total).toBe(3)
+    expect(all.data[0].alternatives).toHaveLength(2)
+  })
+
   it('cada equivalente tiene stock para todas las sucursales', () => {
     for (const box of MOCK_ARTICLES) {
       for (const alt of box.alternatives) {

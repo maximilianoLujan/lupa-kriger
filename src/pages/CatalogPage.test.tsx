@@ -46,6 +46,39 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('banner')).toHaveClass('sticky', 'top-0')
   })
 
+  it('"Solo con stock" oculta los artículos sin stock y al destildarlo vuelven', async () => {
+    const { user } = await setup()
+    await user.type(screen.getByRole('searchbox'), 'cobreq')
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1))
+    expect(screen.getByText('COBREQ')).toBeInTheDocument()
+
+    const filter = screen.getByRole('checkbox', { name: 'Solo con stock' })
+    expect(screen.getByRole('banner')).toContainElement(filter)
+    expect(filter).not.toBeChecked()
+
+    await user.click(filter)
+    await waitFor(() => expect(screen.queryByText('COBREQ')).not.toBeInTheDocument())
+    expect(screen.getByText('FRIC-ROT')).toBeInTheDocument()
+
+    await user.click(filter)
+    await waitFor(() => expect(screen.getByText('COBREQ')).toBeInTheDocument())
+  })
+
+  it('con "Solo con stock" el filtro sigue a la vista aunque no quede ningún artículo', async () => {
+    const search = vi.fn(async () => ({ data: [], page: 1, hasMore: false, total: 0 }))
+    const empty: ArticlesRepository = {
+      search,
+      getWarehouses: () => repo.getWarehouses(),
+      getOrders: (p) => repo.getOrders(p),
+      createOrder: (i) => repo.createOrder(i),
+    }
+    const { user } = await setup(empty)
+    await user.click(screen.getByRole('checkbox', { name: 'Solo con stock' }))
+    await waitFor(() => expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ inStock: true })))
+    expect(screen.getByText('No se encontraron repuestos')).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Solo con stock' })).toBeChecked()
+  })
+
   it('carga más resultados con el botón', async () => {
     const { user } = await setup()
     await user.click(screen.getByRole('button', { name: 'Cargar más' }))

@@ -82,6 +82,7 @@ interface ApiOrdersResponse {
  * los maneja el cliente HTTP (`src/lib/http.ts`); acá solo se traducen datos.
  *
  *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
+ *                                                        (`&inStock=true`: solo artículos con stock)
  *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
  *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total }: las notas de pedido
  *                                                        de la ficha de cliente con el mail del usuario, de la más
@@ -98,9 +99,9 @@ export class ApiArticlesRepository implements ArticlesRepository {
     this.http = http
   }
 
-  async search({ query, page, pageSize = DEFAULT_PAGE_SIZE }: SearchParams): Promise<SearchResponse> {
+  async search({ query, page, pageSize = DEFAULT_PAGE_SIZE, inStock = false }: SearchParams): Promise<SearchResponse> {
     const { data } = await this.http.get<ApiSearchResponse>('/v1/lupa/articles/search', {
-      params: { q: query, page, pageSize },
+      params: { q: query, page, pageSize, ...(inStock ? { inStock: true } : {}) },
     })
     const baseUrl = this.http.defaults.baseURL ?? ''
     return {

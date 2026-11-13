@@ -36,6 +36,20 @@ describe('useArticlesSearch', () => {
     expect(result.current.hasMore).toBe(false)
   })
 
+  it('pasa "solo con stock" al repositorio y lo trata como una consulta aparte', async () => {
+    const search = vi.fn(async ({ inStock }: { inStock?: boolean }) => page([box(inStock ? 'con-stock' : 'todo')], 1, false, 1))
+    const repo = repoWith(search)
+    const { result, rerender } = renderHook(({ inStock }) => useArticlesSearch(repo, 'filtro', inStock), {
+      wrapper: wrapper(),
+      initialProps: { inStock: false },
+    })
+    await waitFor(() => expect(result.current.items.map((b) => b.articleCode)).toEqual(['todo']))
+
+    rerender({ inStock: true })
+    await waitFor(() => expect(result.current.items.map((b) => b.articleCode)).toEqual(['con-stock']))
+    expect(search).toHaveBeenLastCalledWith({ query: 'filtro', page: 1, inStock: true })
+  })
+
   it('reinicia el listado cuando cambia la query', async () => {
     const search = vi.fn(async ({ query }: { query: string }) => page([box(query || 'todo')], 1, false, 1))
     const repo = repoWith(search)
@@ -81,7 +95,7 @@ describe('useArticlesSearch', () => {
 
     expect(result.current.items.map((b) => b.articleCode)).toEqual(['a', 'b'])
     expect(result.current.hasMore).toBe(false)
-    expect(search).toHaveBeenLastCalledWith({ query: '', page: 2 })
+    expect(search).toHaveBeenLastCalledWith({ query: '', page: 2, inStock: false })
   })
 
   it('loadMore no hace nada si no hay más páginas o está cargando', async () => {

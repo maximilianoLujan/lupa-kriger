@@ -1,4 +1,4 @@
-import type { ProductBox, SearchParams, SearchResponse, Warehouse } from '../../../types/article'
+import type { AlternativeArticle, ProductBox, SearchParams, SearchResponse, Warehouse } from '../../../types/article'
 import type { CreateOrderInput, Order, OrderItem, OrdersResponse, PageParams } from '../../../types/order'
 import { normalizeText, tokenize } from '../../../utils/text'
 import { DEFAULT_PAGE_SIZE, type ArticlesRepository } from '../repository'
@@ -26,6 +26,8 @@ function searchableText(box: ProductBox): string {
   return normalizeText(parts.join(' '))
 }
 
+const hasStock = (article: AlternativeArticle) => Object.values(article.stock).some((quantity) => quantity > 0)
+
 export class MockArticlesRepository implements ArticlesRepository {
   private readonly articles: ProductBox[]
   private readonly warehouses: Warehouse[]
@@ -45,16 +47,22 @@ export class MockArticlesRepository implements ArticlesRepository {
     this.delayMs = delayMs
   }
 
-  async search({ query, page, pageSize = DEFAULT_PAGE_SIZE }: SearchParams): Promise<SearchResponse> {
+  async search({ query, page, pageSize = DEFAULT_PAGE_SIZE, inStock = false }: SearchParams): Promise<SearchResponse> {
     await this.wait()
 
     const tokens = tokenize(query)
-    const matches = tokens.length
+    const found = tokens.length
       ? this.articles.filter((box) => {
           const text = searchableText(box)
           return tokens.every((t) => text.includes(t))
         })
       : this.articles
+    // Solo con stock: cada cajita queda con los equivalentes que tienen, y la que se queda sin ninguno no sale.
+    const matches = inStock
+      ? found
+          .map((box) => ({ ...box, alternatives: box.alternatives.filter(hasStock) }))
+          .filter((box) => box.alternatives.length > 0)
+      : found
 
     const safePage = Math.max(1, page)
     const start = (safePage - 1) * pageSize

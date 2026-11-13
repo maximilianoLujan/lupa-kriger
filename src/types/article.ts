@@ -61,6 +61,8 @@ export interface SearchParams {
   /** 1-based. */
   page: number
   pageSize?: number
+  /** Solo artículos con stock en alguna sucursal (y, en cada cajita, solo los equivalentes que lo tienen). */
+  inStock?: boolean
 }
 
 export interface SearchResponse {

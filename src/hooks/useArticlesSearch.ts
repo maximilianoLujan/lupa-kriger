@@ -6,12 +6,13 @@ import { queryKeys } from './queryKeys'
 
 /**
  * Busca artículos en el repositorio y acumula páginas con TanStack Query.
- * Cada `query` distinta es una consulta aparte (y queda cacheada); `loadMore` trae la siguiente página.
+ * Cada combinación de `query` e `inStock` (solo con stock) es una consulta aparte (y queda cacheada);
+ * `loadMore` trae la siguiente página.
  */
-export function useArticlesSearch(repository: ArticlesRepository, query: string) {
+export function useArticlesSearch(repository: ArticlesRepository, query: string, inStock = false) {
   const result = useInfiniteQuery({
-    queryKey: queryKeys.articles.search(query),
-    queryFn: ({ pageParam }) => repository.search({ query, page: pageParam }),
+    queryKey: queryKeys.articles.search(query, inStock),
+    queryFn: ({ pageParam }) => repository.search({ query, page: pageParam, inStock }),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
   })

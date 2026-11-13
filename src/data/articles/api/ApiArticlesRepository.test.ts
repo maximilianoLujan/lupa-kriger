@@ -23,6 +23,12 @@ describe('ApiArticlesRepository', () => {
     expect(calls[0].params).toMatchObject({ pageSize: 10 })
   })
 
+  it('pide solo artículos con stock cuando se lo indican', async () => {
+    const { http, calls } = replyWith(200, EMPTY)
+    await new ApiArticlesRepository(http).search({ query: 'filtro', page: 1, inStock: true })
+    expect(calls[0].params).toEqual({ q: 'filtro', page: 1, pageSize: 10, inStock: true })
+  })
+
   it('traduce las cajitas de la API a los tipos de la app', async () => {
     const { http } = replyWith(200, {
       ...EMPTY,
