@@ -18,7 +18,7 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query)
   const warehouses = useWarehouses(repository)
-  const { items, total, hasMore, loading, error, loadMore, retry } = useArticlesSearch(
+  const { items, hasMore, loading, error, loadMore, retry } = useArticlesSearch(
     repository,
     debouncedQuery,
   )
@@ -27,19 +27,12 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
 
   return (
     <div className="min-h-dvh bg-canvas">
-      <AppHeader search={<SearchBar value={query} onChange={setQuery} />} />
+      {/* Los títulos de columna van dentro del header fijo: quedan a la vista al hacer scroll. */}
+      <AppHeader search={<SearchBar value={query} onChange={setQuery} />}>
+        {items.length > 0 && <ListHeader warehouses={warehouses} />}
+      </AppHeader>
 
       <main className="mx-auto max-w-6xl space-y-3 px-4 py-4">
-        <div className="flex items-center justify-between text-xs text-ink-soft">
-          <span aria-live="polite">
-            {loading && items.length === 0
-              ? 'Buscando…'
-              : `${total} ${total === 1 ? 'resultado' : 'resultados'}`}
-          </span>
-        </div>
-
-        {items.length > 0 && <ListHeader warehouses={warehouses} />}
-
         {items.map((box) => (
           <ArticleCard key={box.articleCode} box={box} warehouses={warehouses} query={debouncedQuery} />
         ))}

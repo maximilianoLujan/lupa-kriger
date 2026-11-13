@@ -29,10 +29,21 @@ async function setup(repository: ArticlesRepository = repo) {
 describe('CatalogPage', () => {
   it('muestra el catálogo completo al entrar, con cabecera de columnas', async () => {
     await setup()
-    expect(screen.getByText('12 resultados')).toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(10)
     expect(screen.getByText('DESCRIPCIÓN')).toBeInTheDocument()
     expect(screen.getAllByText('STOCK').length).toBeGreaterThan(0)
+  })
+
+  it('no muestra la cantidad de resultados', async () => {
+    await setup()
+    expect(screen.queryByText(/resultado/i)).not.toBeInTheDocument()
+  })
+
+  it('la cabecera de columnas va dentro del header fijo, así queda a la vista al hacer scroll', async () => {
+    await setup()
+    const columns = screen.getByRole('group', { name: 'Columnas del listado' })
+    expect(screen.getByRole('banner')).toContainElement(columns)
+    expect(screen.getByRole('banner')).toHaveClass('sticky', 'top-0')
   })
 
   it('carga más resultados con el botón', async () => {
@@ -46,8 +57,7 @@ describe('CatalogPage', () => {
     const { user } = await setup()
     await user.type(screen.getByRole('searchbox'), 'bujia')
 
-    await waitFor(() => expect(screen.getByText('1 resultado')).toBeInTheDocument())
-    expect(screen.getAllByRole('article')).toHaveLength(1)
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1))
     // El título de la cajita es la descripción del primer equivalente con stock.
     expect(screen.getByRole('heading', { name: /Bujía\s*NGK/ })).toBeInTheDocument()
     expect(screen.getByText((_, el) => el?.tagName === 'MARK' && el.textContent === 'Bujía')).toBeInTheDocument()
@@ -57,7 +67,6 @@ describe('CatalogPage', () => {
     const { user } = await setup()
     await user.type(screen.getByRole('searchbox'), 'zzzz')
     await waitFor(() => expect(screen.getByText('No se encontraron repuestos')).toBeInTheDocument())
-    expect(screen.getByText('0 resultados')).toBeInTheDocument()
     expect(screen.queryByText('DESCRIPCIÓN')).not.toBeInTheDocument()
   })
 
