@@ -24,6 +24,8 @@ interface ApiAlternative {
   oemCodes: string[]
   price: string | null
   stock: Record<string, string>
+  /** Ubicación principal por código de depósito; vacío si el usuario no tiene el permiso para verla. */
+  locations?: Record<string, string>
   photoUrl: string | null
 }
 interface ApiBox {
@@ -182,6 +184,7 @@ function toAlternative(a: ApiAlternative): AlternativeArticle {
     brandName: a.brandName ?? '',
     priceList: a.price == null ? 0 : Number(a.price),
     stock: Object.fromEntries(Object.entries(a.stock).map(([code, qty]) => [code, Number(qty)])),
+    ...(a.locations && Object.keys(a.locations).length > 0 ? { locations: a.locations } : {}),
   }
 }
 

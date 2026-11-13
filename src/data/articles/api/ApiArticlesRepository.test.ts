@@ -67,6 +67,31 @@ describe('ApiArticlesRepository', () => {
     ])
   })
 
+  it('pasa la ubicación de cada equivalente; si viene vacía, el equivalente queda sin `locations`', async () => {
+    const alternative = { name: 'Filtro', brandName: 'Fram', oemCodes: [], price: '1.00', stock: {}, photoUrl: null }
+    const { http } = replyWith(200, {
+      ...EMPTY,
+      total: 1,
+      items: [
+        {
+          code: 'FR-100',
+          name: 'FILTRO',
+          details: [],
+          compatibleModels: [],
+          alternatives: [
+            { ...alternative, code: 'FR-100', locations: { GUA: 'A-03-12', NOR: 'Estante 4' } },
+            { ...alternative, code: 'MN-200', locations: {} },
+          ],
+          photoUrl: null,
+        },
+      ],
+    })
+    const res = await new ApiArticlesRepository(http).search({ query: 'filtro', page: 1 })
+    const [fram, mann] = res.data[0].alternatives
+    expect(fram.locations).toEqual({ GUA: 'A-03-12', NOR: 'Estante 4' })
+    expect(mann).not.toHaveProperty('locations')
+  })
+
   it('una cajita sin foto queda sin photoUrl (la UI muestra el logo)', async () => {
     const { http } = replyWith(200, {
       ...EMPTY,

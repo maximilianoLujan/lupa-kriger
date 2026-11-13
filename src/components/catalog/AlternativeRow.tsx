@@ -11,8 +11,27 @@ interface AlternativeRowProps {
   query: string
 }
 
-/** Una fila de equivalente: marca y código | precio | stock por sucursal | agregar al carrito. */
+/**
+ * Ubicación en la estantería, en el orden de las columnas de stock. Con una sola sucursal va la ubicación
+ * sola ("A-03-12"); con varias, cada una con el nombre corto de su sucursal ("GUA A-03-12 · DEP B-01").
+ */
+function shelfLocation(article: AlternativeArticle, warehouses: Warehouse[]): string {
+  return warehouses
+    .flatMap((w) => {
+      const location = article.locations?.[w.code]?.trim()
+      if (!location) return []
+      return [warehouses.length > 1 ? `${w.shortName} ${location}` : location]
+    })
+    .join(' · ')
+}
+
+/**
+ * Una fila de equivalente: marca, código y ubicación en la estantería (si el usuario la puede ver) | precio |
+ * stock por sucursal | agregar al carrito.
+ */
 export function AlternativeRow({ article, warehouses, query }: AlternativeRowProps) {
+  const location = shelfLocation(article, warehouses)
+
   return (
     <li className={`${ALT_GRID} py-2`}>
       <div className="min-w-0" title={article.description}>
@@ -27,6 +46,11 @@ export function AlternativeRow({ article, warehouses, query }: AlternativeRowPro
         <p className="truncate text-xs text-ink-soft">
           <Highlight text={article.particularCode} query={query} />
         </p>
+        {location && (
+          <p className="truncate text-[11px] text-ink-soft" title={`Ubicación: ${location}`}>
+            <span className="font-semibold">Ubic.</span> {location}
+          </p>
+        )}
       </div>
 
       <p className="text-right text-sm font-bold whitespace-nowrap text-emerald-600 tabular-nums">

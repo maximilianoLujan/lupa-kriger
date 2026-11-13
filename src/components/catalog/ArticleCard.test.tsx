@@ -69,6 +69,36 @@ describe('ArticleCard', () => {
     expect(within(outletRow).getByRole('img', { name: 'DEP: sin stock' })).toBeInTheDocument()
   })
 
+  it('muestra la ubicación en la estantería de cada equivalente, por sucursal', () => {
+    const [fricRot, cobreq] = box.alternatives
+    render(
+      <ArticleCard
+        box={{ ...box, alternatives: [{ ...fricRot, locations: { GUA: 'A-03-12', DEP: 'Estante 4' } }, cobreq] }}
+        warehouses={warehouses}
+        query=""
+      />,
+    )
+    const located = screen.getByText('FRIC-ROT').closest('li')!
+    expect(within(located).getByTitle('Ubicación: GUA A-03-12 · DEP Estante 4')).toHaveTextContent(
+      'Ubic. GUA A-03-12 · DEP Estante 4',
+    )
+    // Sin ubicación (o sin permiso para verla) la fila queda como siempre.
+    const plain = screen.getByText('COBREQ').closest('li')!
+    expect(within(plain).queryByText('Ubic.')).not.toBeInTheDocument()
+  })
+
+  it('con una sola sucursal la ubicación va sin el nombre de la sucursal', () => {
+    const [fricRot] = box.alternatives
+    render(
+      <ArticleCard
+        box={{ ...box, alternatives: [{ ...fricRot, locations: { GUA: 'A-03-12', OTRA: 'Z-9' } }] }}
+        warehouses={[warehouses[0]]}
+        query=""
+      />,
+    )
+    expect(screen.getByTitle('Ubicación: A-03-12')).toHaveTextContent('Ubic. A-03-12')
+  })
+
   it('marca los artículos outlet', () => {
     render(<ArticleCard box={box} warehouses={warehouses} query="" />)
     expect(screen.getByText('Outlet')).toBeInTheDocument()

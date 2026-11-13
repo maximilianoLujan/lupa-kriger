@@ -31,6 +31,11 @@ export interface AlternativeArticle {
   priceList: number
   /** Stock por código de sucursal. */
   stock: Record<string, number>
+  /**
+   * Ubicación en la estantería por código de sucursal (ej. "A-03-12"). Solo viene para el personal
+   * de la empresa; una sucursal sin clave no tiene ubicación asignada.
+   */
+  locations?: Record<string, string>
   isOutlet?: boolean
 }
 
