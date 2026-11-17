@@ -39,7 +39,7 @@ describe('useArticlesSearch', () => {
   it('pasa "solo con stock" al repositorio y lo trata como una consulta aparte', async () => {
     const search = vi.fn(async ({ inStock }: { inStock?: boolean }) => page([box(inStock ? 'con-stock' : 'todo')], 1, false, 1))
     const repo = repoWith(search)
-    const { result, rerender } = renderHook(({ inStock }) => useArticlesSearch(repo, 'filtro', inStock), {
+    const { result, rerender } = renderHook(({ inStock }) => useArticlesSearch(repo, 'filtro', { inStock }), {
       wrapper: wrapper(),
       initialProps: { inStock: false },
     })
@@ -47,7 +47,21 @@ describe('useArticlesSearch', () => {
 
     rerender({ inStock: true })
     await waitFor(() => expect(result.current.items.map((b) => b.articleCode)).toEqual(['con-stock']))
-    expect(search).toHaveBeenLastCalledWith({ query: 'filtro', page: 1, inStock: true })
+    expect(search).toHaveBeenLastCalledWith({ query: 'filtro', page: 1, inStock: true, startsWith: false })
+  })
+
+  it('pasa "comienza con" al repositorio y lo trata como una consulta aparte', async () => {
+    const search = vi.fn(async ({ startsWith }: { startsWith?: boolean }) => page([box(startsWith ? 'empieza' : 'todo')], 1, false, 1))
+    const repo = repoWith(search)
+    const { result, rerender } = renderHook(({ startsWith }) => useArticlesSearch(repo, 'filtro', { startsWith }), {
+      wrapper: wrapper(),
+      initialProps: { startsWith: false },
+    })
+    await waitFor(() => expect(result.current.items.map((b) => b.articleCode)).toEqual(['todo']))
+
+    rerender({ startsWith: true })
+    await waitFor(() => expect(result.current.items.map((b) => b.articleCode)).toEqual(['empieza']))
+    expect(search).toHaveBeenLastCalledWith({ query: 'filtro', page: 1, inStock: false, startsWith: true })
   })
 
   it('reinicia el listado cuando cambia la query', async () => {
@@ -95,7 +109,7 @@ describe('useArticlesSearch', () => {
 
     expect(result.current.items.map((b) => b.articleCode)).toEqual(['a', 'b'])
     expect(result.current.hasMore).toBe(false)
-    expect(search).toHaveBeenLastCalledWith({ query: '', page: 2, inStock: false })
+    expect(search).toHaveBeenLastCalledWith({ query: '', page: 2, inStock: false, startsWith: false })
   })
 
   it('loadMore no hace nada si no hay más páginas o está cargando', async () => {

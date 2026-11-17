@@ -29,6 +29,12 @@ describe('ApiArticlesRepository', () => {
     expect(calls[0].params).toEqual({ q: 'filtro', page: 1, pageSize: 10, inStock: true })
   })
 
+  it('pide solo los que comienzan con la búsqueda cuando se lo indican', async () => {
+    const { http, calls } = replyWith(200, EMPTY)
+    await new ApiArticlesRepository(http).search({ query: 'fil', page: 1, startsWith: true })
+    expect(calls[0].params).toEqual({ q: 'fil', page: 1, pageSize: 10, startsWith: true })
+  })
+
   it('traduce las cajitas de la API a los tipos de la app', async () => {
     const { http } = replyWith(200, {
       ...EMPTY,
@@ -96,6 +102,33 @@ describe('ApiArticlesRepository', () => {
     const [fram, mann] = res.data[0].alternatives
     expect(fram.locations).toEqual({ GUA: 'A-03-12', NOR: 'Estante 4' })
     expect(mann).not.toHaveProperty('locations')
+  })
+
+  it('pasa el punto de pedido de cada equivalente; sin permiso (null) el equivalente queda sin `reorderPoint`', async () => {
+    const alternative = { name: 'Filtro', brandName: 'Fram', oemCodes: [], price: '1.00', stock: {}, photoUrl: null }
+    const { http } = replyWith(200, {
+      ...EMPTY,
+      total: 1,
+      items: [
+        {
+          code: 'FR-100',
+          name: 'FILTRO',
+          details: [],
+          compatibleModels: [],
+          alternatives: [
+            { ...alternative, code: 'FR-100', minStock: '5.000' },
+            { ...alternative, code: 'MN-200', minStock: '0.000' },
+            { ...alternative, code: 'WG-300', minStock: null },
+          ],
+          photoUrl: null,
+        },
+      ],
+    })
+    const res = await new ApiArticlesRepository(http).search({ query: 'filtro', page: 1 })
+    const [fram, mann, wega] = res.data[0].alternatives
+    expect(fram.reorderPoint).toBe(5)
+    expect(mann.reorderPoint).toBe(0)
+    expect(wega).not.toHaveProperty('reorderPoint')
   })
 
   it('una cajita sin foto queda sin photoUrl (la UI muestra el logo)', async () => {

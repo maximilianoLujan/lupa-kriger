@@ -79,6 +79,32 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('checkbox', { name: 'Solo con stock' })).toBeChecked()
   })
 
+  it('"Comienza con" va al lado de "Solo con stock" y trae solo lo que empieza con la búsqueda', async () => {
+    const { user } = await setup()
+    const filter = screen.getByRole('checkbox', { name: 'Comienza con' })
+    const filters = screen.getByRole('group', { name: 'Filtros' })
+    expect(screen.getByRole('banner')).toContainElement(filters)
+    expect(filters).toContainElement(filter)
+    expect(filters).toContainElement(screen.getByRole('checkbox', { name: 'Solo con stock' }))
+    expect(filter).not.toBeChecked()
+
+    // "aceite" está en el medio de la descripción: sale sin el filtro y no con él.
+    await user.type(screen.getByRole('searchbox'), 'aceite')
+    await waitFor(() => expect(screen.getByText('MANN')).toBeInTheDocument())
+
+    await user.click(filter)
+    await waitFor(() => expect(screen.getByText('No se encontraron repuestos')).toBeInTheDocument())
+    expect(filter).toBeChecked()
+
+    // El comienzo de la descripción sí.
+    await user.clear(screen.getByRole('searchbox'))
+    await user.type(screen.getByRole('searchbox'), 'filtro de ac')
+    await waitFor(() => expect(screen.getByText('MANN')).toBeInTheDocument())
+
+    await user.click(filter)
+    expect(filter).not.toBeChecked()
+  })
+
   it('carga más resultados con el botón', async () => {
     const { user } = await setup()
     await user.click(screen.getByRole('button', { name: 'Cargar más' }))

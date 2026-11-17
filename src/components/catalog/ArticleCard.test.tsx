@@ -99,6 +99,22 @@ describe('ArticleCard', () => {
     expect(screen.getByTitle('Ubicación: A-03-12')).toHaveTextContent('Ubic. A-03-12')
   })
 
+  it('muestra el punto de pedido de cada equivalente que lo tiene', () => {
+    const [fricRot, cobreq] = box.alternatives
+    render(
+      <ArticleCard
+        box={{ ...box, alternatives: [{ ...fricRot, reorderPoint: 6 }, { ...cobreq, reorderPoint: 0 }] }}
+        warehouses={warehouses}
+        query=""
+      />,
+    )
+    const withPoint = screen.getByText('FRIC-ROT').closest('li')!
+    expect(within(withPoint).getByTitle('Punto de pedido: 6')).toHaveTextContent('Pto. pedido 6')
+    // Sin punto de pedido cargado (0) o sin permiso para verlo, la fila queda como siempre.
+    const plain = screen.getByText('COBREQ').closest('li')!
+    expect(within(plain).queryByText('Pto. pedido')).not.toBeInTheDocument()
+  })
+
   it('marca los artículos outlet', () => {
     render(<ArticleCard box={box} warehouses={warehouses} query="" />)
     expect(screen.getByText('Outlet')).toBeInTheDocument()

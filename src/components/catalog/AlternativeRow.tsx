@@ -25,12 +25,17 @@ function shelfLocation(article: AlternativeArticle, warehouses: Warehouse[]): st
     .join(' · ')
 }
 
+/** Cantidad sin ceros de más: 5 → "5", 2.5 → "2,5". */
+const formatQuantity = (quantity: number) => quantity.toLocaleString('es-AR', { maximumFractionDigits: 3 })
+
 /**
- * Una fila de equivalente: marca, código y ubicación en la estantería (si el usuario la puede ver) | precio |
- * stock por sucursal | agregar al carrito.
+ * Una fila de equivalente: marca, código, ubicación en la estantería y punto de pedido (los dos últimos, si el
+ * usuario los puede ver) | precio | stock por sucursal | agregar al carrito.
  */
 export function AlternativeRow({ article, warehouses, query }: AlternativeRowProps) {
   const location = shelfLocation(article, warehouses)
+  // Sin punto de pedido cargado (0) no hay nada que mostrar.
+  const reorderPoint = article.reorderPoint && article.reorderPoint > 0 ? formatQuantity(article.reorderPoint) : null
 
   return (
     <li className={`${ALT_GRID} py-2`}>
@@ -49,6 +54,11 @@ export function AlternativeRow({ article, warehouses, query }: AlternativeRowPro
         {location && (
           <p className="truncate text-[11px] text-ink-soft" title={`Ubicación: ${location}`}>
             <span className="font-semibold">Ubic.</span> {location}
+          </p>
+        )}
+        {reorderPoint && (
+          <p className="truncate text-[11px] text-ink-soft" title={`Punto de pedido: ${reorderPoint}`}>
+            <span className="font-semibold">Pto. pedido</span> {reorderPoint}
           </p>
         )}
       </div>

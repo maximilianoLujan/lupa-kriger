@@ -2,7 +2,8 @@
 export const queryKeys = {
   articles: {
     all: ['articles'] as const,
-    search: (query: string, inStock = false) => ['articles', 'search', query, { inStock }] as const,
+    search: (query: string, { inStock = false, startsWith = false }: { inStock?: boolean; startsWith?: boolean } = {}) =>
+      ['articles', 'search', query, { inStock, startsWith }] as const,
   },
   warehouses: ['warehouses'] as const,
   orders: {

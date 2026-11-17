@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArticleCard } from '../components/catalog/ArticleCard'
 import { ListHeader } from '../components/catalog/ListHeader'
 import { SearchBar } from '../components/catalog/SearchBar'
+import { StartsWithFilter } from '../components/catalog/StartsWithFilter'
 import { StockFilter } from '../components/catalog/StockFilter'
 import { AppHeader } from '../components/layout/AppHeader'
 import { Button } from '../components/ui/Button'
@@ -18,21 +19,24 @@ interface CatalogPageProps {
 export function CatalogPage({ repository = articlesRepository }: CatalogPageProps) {
   const [query, setQuery] = useState('')
   const [onlyInStock, setOnlyInStock] = useState(false)
+  const [startsWith, setStartsWith] = useState(false)
   const debouncedQuery = useDebouncedValue(query)
   const warehouses = useWarehouses(repository)
-  const { items, hasMore, loading, error, loadMore, retry } = useArticlesSearch(
-    repository,
-    debouncedQuery,
-    onlyInStock,
-  )
+  const { items, hasMore, loading, error, loadMore, retry } = useArticlesSearch(repository, debouncedQuery, {
+    inStock: onlyInStock,
+    startsWith,
+  })
 
   const isEmpty = !loading && !error && items.length === 0
 
   return (
     <div className="min-h-dvh bg-canvas">
-      {/* El filtro y los títulos de columna van dentro del header fijo: quedan a la vista al hacer scroll. */}
+      {/* Los filtros y los títulos de columna van dentro del header fijo: quedan a la vista al hacer scroll. */}
       <AppHeader search={<SearchBar value={query} onChange={setQuery} />}>
-        <StockFilter checked={onlyInStock} onChange={setOnlyInStock} />
+        <div role="group" aria-label="Filtros" className="flex flex-wrap gap-2">
+          <StockFilter checked={onlyInStock} onChange={setOnlyInStock} />
+          <StartsWithFilter checked={startsWith} onChange={setStartsWith} />
+        </div>
         {items.length > 0 && <ListHeader warehouses={warehouses} />}
       </AppHeader>
 

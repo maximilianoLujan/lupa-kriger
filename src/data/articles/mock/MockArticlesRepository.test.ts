@@ -114,6 +114,22 @@ describe('datos mock', () => {
     expect(all.data[0].alternatives).toHaveLength(2)
   })
 
+  it('con startsWith trae solo lo que empieza con la búsqueda: descripción o código, sin lo que la tiene en el medio', async () => {
+    const codes = async (query: string, startsWith = false) =>
+      (await repo.search({ query, page: 1, pageSize: 50, startsWith })).data.map((b) => b.articleCode)
+
+    // "aceite" está en el medio de "FILTRO DE ACEITE": sin el filtro sale, con el filtro no.
+    expect(await codes('aceite')).toContain('10002')
+    expect(await codes('aceite', true)).not.toContain('10002')
+    // El comienzo de la descripción, sin importar acentos ni mayúsculas.
+    expect(await codes('Filtro de acéite', true)).toContain('10002')
+    // El comienzo del código de un equivalente, sin contar espacios ni guiones ("W 712/75").
+    expect(await codes('w712', true)).toEqual(['10002'])
+    expect(await codes('712', true)).toEqual([])
+    // Sin texto no filtra nada.
+    expect((await repo.search({ query: '', page: 1, startsWith: true })).total).toBe(MOCK_ARTICLES.length)
+  })
+
   it('cada equivalente tiene stock para todas las sucursales', () => {
     for (const box of MOCK_ARTICLES) {
       for (const alt of box.alternatives) {

@@ -36,6 +36,11 @@ export interface AlternativeArticle {
    * de la empresa; una sucursal sin clave no tiene ubicación asignada.
    */
   locations?: Record<string, string>
+  /**
+   * Punto de pedido: el stock mínimo del artículo, a partir del cual hay que reponer. Solo viene para el
+   * personal de la empresa; 0 es que no tiene uno cargado.
+   */
+  reorderPoint?: number
   isOutlet?: boolean
 }
 
@@ -63,6 +68,11 @@ export interface SearchParams {
   pageSize?: number
   /** Solo artículos con stock en alguna sucursal (y, en cada cajita, solo los equivalentes que lo tienen). */
   inStock?: boolean
+  /**
+   * "Comienza con": solo los artículos cuyo código o descripción empieza con `query` (sin los que lo tienen en el
+   * medio). Sin `query` no cambia nada.
+   */
+  startsWith?: boolean
 }
 
 export interface SearchResponse {

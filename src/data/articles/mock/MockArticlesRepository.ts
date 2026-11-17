@@ -26,6 +26,23 @@ function searchableText(box: ProductBox): string {
   return normalizeText(parts.join(' '))
 }
 
+/** Solo letras y números: así "w712" encuentra el código "W 712/75". */
+const codeOnly = (value: string) => normalizeText(value).replace(/[^a-z0-9]/g, '')
+
+/**
+ * "Comienza con", como la API: la descripción (de la cajita o de un equivalente) empieza con lo buscado, o el
+ * código de un equivalente empieza así sin contar guiones ni espacios.
+ */
+function startsWithQuery(box: ProductBox, query: string): boolean {
+  const text = normalizeText(query)
+  const code = codeOnly(query)
+  const descriptions = [box.description, ...box.alternatives.map((a) => a.description)]
+  return (
+    descriptions.some((d) => normalizeText(d).startsWith(text)) ||
+    (code.length > 0 && box.alternatives.some((a) => codeOnly(a.particularCode).startsWith(code)))
+  )
+}
+
 const hasStock = (article: AlternativeArticle) => Object.values(article.stock).some((quantity) => quantity > 0)
 
 export class MockArticlesRepository implements ArticlesRepository {
@@ -47,16 +64,24 @@ export class MockArticlesRepository implements ArticlesRepository {
     this.delayMs = delayMs
   }
 
-  async search({ query, page, pageSize = DEFAULT_PAGE_SIZE, inStock = false }: SearchParams): Promise<SearchResponse> {
+  async search({
+    query,
+    page,
+    pageSize = DEFAULT_PAGE_SIZE,
+    inStock = false,
+    startsWith = false,
+  }: SearchParams): Promise<SearchResponse> {
     await this.wait()
 
     const tokens = tokenize(query)
-    const found = tokens.length
-      ? this.articles.filter((box) => {
-          const text = searchableText(box)
-          return tokens.every((t) => text.includes(t))
-        })
-      : this.articles
+    const found = !tokens.length
+      ? this.articles
+      : startsWith
+        ? this.articles.filter((box) => startsWithQuery(box, query))
+        : this.articles.filter((box) => {
+            const text = searchableText(box)
+            return tokens.every((t) => text.includes(t))
+          })
     // Solo con stock: cada cajita queda con los equivalentes que tienen, y la que se queda sin ninguno no sale.
     const matches = inStock
       ? found

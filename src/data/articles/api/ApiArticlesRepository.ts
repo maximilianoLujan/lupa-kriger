@@ -26,6 +26,8 @@ interface ApiAlternative {
   stock: Record<string, string>
   /** Ubicación principal por código de depósito; vacío si el usuario no tiene el permiso para verla. */
   locations?: Record<string, string>
+  /** Punto de pedido (stock mínimo, decimal "5.000"); null si el usuario no tiene el permiso para verlo. */
+  minStock?: string | null
   photoUrl: string | null
 }
 interface ApiBox {
@@ -82,7 +84,8 @@ interface ApiOrdersResponse {
  * los maneja el cliente HTTP (`src/lib/http.ts`); acá solo se traducen datos.
  *
  *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
- *                                                        (`&inStock=true`: solo artículos con stock)
+ *                                                        (`&inStock=true`: solo artículos con stock;
+ *                                                        `&startsWith=true`: solo los que empiezan con `q`)
  *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
  *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total }: las notas de pedido
  *                                                        de la ficha de cliente con el mail del usuario, de la más
@@ -99,9 +102,21 @@ export class ApiArticlesRepository implements ArticlesRepository {
     this.http = http
   }
 
-  async search({ query, page, pageSize = DEFAULT_PAGE_SIZE, inStock = false }: SearchParams): Promise<SearchResponse> {
+  async search({
+    query,
+    page,
+    pageSize = DEFAULT_PAGE_SIZE,
+    inStock = false,
+    startsWith = false,
+  }: SearchParams): Promise<SearchResponse> {
     const { data } = await this.http.get<ApiSearchResponse>('/v1/lupa/articles/search', {
-      params: { q: query, page, pageSize, ...(inStock ? { inStock: true } : {}) },
+      params: {
+        q: query,
+        page,
+        pageSize,
+        ...(inStock ? { inStock: true } : {}),
+        ...(startsWith ? { startsWith: true } : {}),
+      },
     })
     const baseUrl = this.http.defaults.baseURL ?? ''
     return {
@@ -186,6 +201,7 @@ function toAlternative(a: ApiAlternative): AlternativeArticle {
     priceList: a.price == null ? 0 : Number(a.price),
     stock: Object.fromEntries(Object.entries(a.stock).map(([code, qty]) => [code, Number(qty)])),
     ...(a.locations && Object.keys(a.locations).length > 0 ? { locations: a.locations } : {}),
+    ...(a.minStock != null ? { reorderPoint: Number(a.minStock) } : {}),
   }
 }
 

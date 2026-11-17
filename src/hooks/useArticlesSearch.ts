@@ -4,15 +4,26 @@ import type { ArticlesRepository } from '../data/articles'
 import { errorMessage } from '../lib/http'
 import { queryKeys } from './queryKeys'
 
+export interface ArticlesSearchFilters {
+  /** Solo artículos con stock. */
+  inStock?: boolean
+  /** Solo los que empiezan con la búsqueda. */
+  startsWith?: boolean
+}
+
 /**
  * Busca artículos en el repositorio y acumula páginas con TanStack Query.
- * Cada combinación de `query` e `inStock` (solo con stock) es una consulta aparte (y queda cacheada);
- * `loadMore` trae la siguiente página.
+ * Cada combinación de `query` y filtros (`inStock`: solo con stock; `startsWith`: comienza con) es una consulta
+ * aparte (y queda cacheada); `loadMore` trae la siguiente página.
  */
-export function useArticlesSearch(repository: ArticlesRepository, query: string, inStock = false) {
+export function useArticlesSearch(
+  repository: ArticlesRepository,
+  query: string,
+  { inStock = false, startsWith = false }: ArticlesSearchFilters = {},
+) {
   const result = useInfiniteQuery({
-    queryKey: queryKeys.articles.search(query, inStock),
-    queryFn: ({ pageParam }) => repository.search({ query, page: pageParam, inStock }),
+    queryKey: queryKeys.articles.search(query, { inStock, startsWith }),
+    queryFn: ({ pageParam }) => repository.search({ query, page: pageParam, inStock, startsWith }),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
   })
