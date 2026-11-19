@@ -129,7 +129,7 @@ descriptivas (`details`), la unión de modelos compatibles de Repuestos (`compat
 artículo y sus equivalentes activos) con `brandName`, `oemCodes`, `price` (con IVA, lista por defecto; string decimal)
 y `stock` por código de depósito (string decimal). `ApiArticlesRepository` traduce eso a los tipos de la app
 (`src/types/article.ts`): `price` → `priceList` (número), `stock` → números, `make` → `brandName`, años → `since`/`until`.
-Cada alternativa trae además `priceUpdatedAt` (la última vez que cambió su precio; ADR-0365 del ERP), que la app usa
+Cada alternativa trae además `priceUpdatedAt` (la última vez que cambió su precio; ADR-0366 del ERP), que la app usa
 para resaltar los precios viejos.
 
 **Ficha del artículo:** `GET /v1/lupa/articles/detail?code=<código>` devuelve la misma cajita para ese artículo (él
