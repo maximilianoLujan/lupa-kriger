@@ -120,6 +120,7 @@ Es el módulo **Lupa** del ERP (ADR-0255 del repo del ERP), con la sesión del u
 
 ```
 GET {VITE_API_URL}/v1/lupa/articles/search?q=&page=&pageSize=   → { items, page, pageSize, hasMore, total }
+GET {VITE_API_URL}/v1/lupa/articles/detail?code=                 → la ficha de un artículo (ver "Ficha del artículo")
 GET {VITE_API_URL}/v1/lupa/warehouses                            → { items: [{ code, name }] }
 ```
 
@@ -128,6 +129,14 @@ descriptivas (`details`), la unión de modelos compatibles de Repuestos (`compat
 artículo y sus equivalentes activos) con `brandName`, `oemCodes`, `price` (con IVA, lista por defecto; string decimal)
 y `stock` por código de depósito (string decimal). `ApiArticlesRepository` traduce eso a los tipos de la app
 (`src/types/article.ts`): `price` → `priceList` (número), `stock` → números, `make` → `brandName`, años → `since`/`until`.
+Cada alternativa trae además `priceUpdatedAt` (la última vez que cambió su precio; ADR-0365 del ERP), que la app usa
+para resaltar los precios viejos.
+
+**Ficha del artículo:** `GET /v1/lupa/articles/detail?code=<código>` devuelve la misma cajita para ese artículo (él
+primero, después sus equivalentes) y `groupName`; cada alternativa suma `description` (líneas), `categoryName`,
+`compatibleModels` propias, `priceNet`, `cost`, `costUpdatedAt`, `markupPct` (margen sobre el costo) y `marginPct`
+(sobre la venta). `ApiArticlesRepository.getArticle` lo traduce a `ArticleDetail`; lo que la API manda en `null` no se
+agrega. 404 si el código no existe o el artículo no está activo.
 
 **Fotos:** cada cajita trae `photoUrl`, una ruta firmada relativa a la API (`/v1/public/lupa/photos?token=…`) que vale
 un día y que el navegador carga sin token de sesión (ADR-0257 del ERP). El repositorio la vuelve absoluta con la base del
@@ -147,7 +156,7 @@ Tres capas, cada una con una sola responsabilidad:
 |---|---|---|
 | Cliente HTTP | `src/lib/http.ts` | Instancia de Axios con `VITE_API_URL`. Manda `Authorization: Bearer` con el token de la sesión. Ante un 401 llama a `POST /v1/auth/refresh` una sola vez (aunque fallen varias peticiones a la vez), guarda los tokens nuevos y repite la petición. Si no puede renovar, cierra la sesión y la app vuelve al login. Todo error llega como `ApiError` con `status` y mensaje legible (`status` 0 es red caída). |
 | Repositorios | `src/data/articles/` y `src/auth/api.ts` | Traducen el contrato del ERP a los tipos de la app. No saben de tokens ni de errores: eso lo hace el cliente. |
-| Hooks de datos | `src/hooks/` | TanStack Query. `useArticlesSearch` es un `useInfiniteQuery` por texto buscado (cada búsqueda queda cacheada, "Cargar más" trae la página siguiente). `useWarehouses` es un `useQuery` que se pide una vez por sesión. Las claves están en `queryKeys.ts`. |
+| Hooks de datos | `src/hooks/` | TanStack Query. `useArticlesSearch` es un `useInfiniteQuery` por texto buscado (cada búsqueda queda cacheada, "Cargar más" trae la página siguiente). `useWarehouses` es un `useQuery` que se pide una vez por sesión. `useArticleDetail` es un `useQuery` por código, para la ficha. Las claves están en `queryKeys.ts`. |
 
 El `QueryClient` de la app (`src/lib/queryClient.ts`) reintenta una vez los errores de red o de servidor y nunca los 4xx. En desarrollo aparecen las devtools de Query abajo a la izquierda.
 
@@ -164,6 +173,10 @@ El carrito es un store de Zustand (`src/cart/store.ts`) persistido en `sessionSt
 ## Catálogo
 
 - Búsqueda libre con debounce de 300 ms. Matchea todas las palabras contra descripción, detalles, marca y modelo de auto, marca del equivalente y código de fabricante, sin distinguir acentos ni mayúsculas. Las coincidencias se resaltan.
+- Los conectores ("de", "para", "con", "por"…) no cuentan en la búsqueda ni se resaltan: "bomba para agua" busca "bomba agua" (`searchWords` en `src/utils/text.ts`, la misma lista que usa el ERP).
+- Filtro "Comienza con": trae los artículos cuyo código empieza con lo buscado, o cuya descripción empieza con la primera palabra y tiene las demás en cualquier lugar ("bomba agua megane" encuentra "BOMBA AGUA APLICA A RENAULT … MEGANE III").
+- Precio viejo: el precio de un equivalente que lleva más de 30 días sin modificarse (`STALE_PRICE_DAYS` en `src/utils/priceAge.ts`) se muestra resaltado en amarillo y, al pasar el mouse, enfocarlo o tocarlo, un tooltip dice hace cuántos días no cambia y desde qué fecha (`PriceTag`). Sin fecha no se resalta.
+- Ficha del artículo: con doble clic en un código (el de la cajita o el de un equivalente; con el teclado, Enter) se abre `ArticleDetailDialog` con foto, código, grupo, rubro, precio con y sin IVA, costo, fechas de modificación de precio y costo, márgenes sobre costo y sobre venta, stock por sucursal, stock mínimo, ubicación, códigos OEM, descripción, compatibilidades y alternativos. Doble clic en el código de un alternativo pasa a su ficha. Se cierra con Escape, con el botón o tocando fuera. Un solo clic no hace nada, así se puede seleccionar el código para copiarlo.
 - Paginado con botón "Cargar más".
 - Stock con círculos de color: verde más de 5, amarillo entre 1 y 5, rojo sin stock. Más de 9 se muestra como "+9". Hay un solo depósito y la columna dice STOCK; si la API devuelve varios, aparece una columna por depósito con su nombre corto.
 - Layout mobile first: la cajita se apila en celular y se vuelve fila con columnas (foto, descripción, modelo, equivalentes) en pantallas grandes, como en lupa-web.

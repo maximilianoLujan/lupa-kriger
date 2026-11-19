@@ -280,4 +280,122 @@ describe('ApiArticlesRepository.createOrder', () => {
       'No encontramos un cliente con el número 9999',
     )
   })
+
+  it('trae la fecha del precio de cada equivalente', async () => {
+    const alternative = { code: 'A', name: 'A', brandName: null, oemCodes: [], price: '10.00', stock: {}, photoUrl: null }
+    const { http } = replyWith(200, {
+      ...EMPTY,
+      items: [
+        {
+          code: 'A',
+          name: 'A',
+          details: [],
+          compatibleModels: [],
+          photoUrl: null,
+          alternatives: [
+            { ...alternative, priceUpdatedAt: '2026-10-01T12:00:00.000Z' },
+            { ...alternative, code: 'B', priceUpdatedAt: null },
+            { ...alternative, code: 'C' },
+          ],
+        },
+      ],
+    })
+    const [box] = (await new ApiArticlesRepository(http).search({ query: 'a', page: 1 })).data
+    expect(box.alternatives[0].priceUpdatedAt).toBe('2026-10-01T12:00:00.000Z')
+    expect(box.alternatives[1]).not.toHaveProperty('priceUpdatedAt')
+    expect(box.alternatives[2]).not.toHaveProperty('priceUpdatedAt')
+  })
+
+  it('pide la ficha por código y la traduce a los tipos de la app', async () => {
+    const base = {
+      oemCodes: [],
+      stock: {},
+      locations: {},
+      minStock: null,
+      photoUrl: null,
+      description: [],
+      categoryName: null,
+      compatibleModels: [],
+      costUpdatedAt: '2026-09-15T12:30:00.000Z',
+    }
+    const { http, calls } = replyWith(200, {
+      code: 'MN-200',
+      name: 'FILTRO DE ACEITE',
+      groupName: 'FILTRO DE ACEITE',
+      details: ['Se vende por unidad'],
+      compatibleModels: [{ make: 'Peugeot', model: '206', yearFrom: 1999, yearTo: 2012 }],
+      photoUrl: '/v1/public/lupa/photos?token=abc.def',
+      alternatives: [
+        {
+          ...base,
+          code: 'MN-200',
+          name: 'Filtro Mann',
+          brandName: 'Mann',
+          oemCodes: ['1109AL'],
+          price: '3630.00',
+          priceUpdatedAt: '2026-10-01T12:00:00.000Z',
+          stock: { GUA: '3.000' },
+          locations: { GUA: 'Estante 4' },
+          minStock: '5.000',
+          photoUrl: '/v1/public/lupa/photos?token=abc.def',
+          description: ['Rosca 3/4'],
+          categoryName: 'Filtros',
+          compatibleModels: [{ make: 'Citroën', model: 'C3', yearFrom: null, yearTo: null }],
+          priceNet: '3000.00',
+          cost: '1500.00',
+          markupPct: '100.00',
+          marginPct: '50.00',
+        },
+        { ...base, code: 'FR-100', name: 'Filtro Fram', brandName: null, price: null, priceUpdatedAt: null, priceNet: null, cost: null, markupPct: null, marginPct: null },
+      ],
+    })
+
+    const detail = await new ApiArticlesRepository(http).getArticle('MN-200')
+
+    expect(calls[0].url).toBe('/v1/lupa/articles/detail')
+    expect(calls[0].params).toEqual({ code: 'MN-200' })
+    expect(detail).toMatchObject({
+      articleCode: 'MN-200',
+      description: 'FILTRO DE ACEITE',
+      groupName: 'FILTRO DE ACEITE',
+      details: ['Se vende por unidad'],
+      compatibleModels: [{ brandName: 'Peugeot', model: '206', since: '1999', until: '2012' }],
+      photoUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def',
+      photoThumbUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def&variant=thumb',
+    })
+    expect(detail.alternatives[0]).toEqual({
+      articleCode: 'MN-200',
+      particularCode: 'MN-200',
+      description: 'Filtro Mann',
+      brandCode: 'Mann',
+      brandName: 'Mann',
+      priceList: 3630,
+      priceUpdatedAt: '2026-10-01T12:00:00.000Z',
+      stock: { GUA: 3 },
+      locations: { GUA: 'Estante 4' },
+      reorderPoint: 5,
+      details: ['Rosca 3/4'],
+      categoryName: 'Filtros',
+      compatibleModels: [{ brandName: 'Citroën', model: 'C3' }],
+      oemCodes: ['1109AL'],
+      priceNet: 3000,
+      cost: 1500,
+      costUpdatedAt: '2026-09-15T12:30:00.000Z',
+      markupPct: 100,
+      marginPct: 50,
+      photoUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def',
+      photoThumbUrl: 'https://api.test/v1/public/lupa/photos?token=abc.def&variant=thumb',
+    })
+    // Lo que la API no puede calcular no se inventa.
+    const fram = detail.alternatives[1]
+    expect(fram).toMatchObject({ particularCode: 'FR-100', priceList: 0, brandName: '' })
+    for (const key of ['priceNet', 'cost', 'markupPct', 'marginPct', 'priceUpdatedAt', 'categoryName', 'photoUrl']) {
+      expect(fram).not.toHaveProperty(key)
+    }
+  })
+
+  it('sin grupo la ficha no trae nombre de grupo', async () => {
+    const { http } = replyWith(200, { code: 'A', name: 'A', groupName: null, details: [], compatibleModels: [], photoUrl: null, alternatives: [] })
+    expect(await new ApiArticlesRepository(http).getArticle('A')).not.toHaveProperty('groupName')
+  })
 })

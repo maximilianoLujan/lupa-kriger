@@ -1,7 +1,9 @@
 import type { AxiosInstance } from 'axios'
 import type {
   AlternativeArticle,
+  ArticleDetail,
   CompatibleModel,
+  DetailArticle,
   ProductBox,
   SearchParams,
   SearchResponse,
@@ -23,6 +25,8 @@ interface ApiAlternative {
   brandName: string | null
   oemCodes: string[]
   price: string | null
+  /** Última vez que cambió el precio (ISO-8601); null si no hay lista de precios. */
+  priceUpdatedAt?: string | null
   stock: Record<string, string>
   /** Ubicación principal por código de depósito; vacío si el usuario no tiene el permiso para verla. */
   locations?: Record<string, string>
@@ -38,6 +42,22 @@ interface ApiBox {
   alternatives: ApiAlternative[]
   /** Ruta firmada relativa a la API (`/v1/public/lupa/photos?token=…`), válida un día y sin sesión. */
   photoUrl: string | null
+}
+/** Ficha (`GET /v1/lupa/articles/detail`): cada artículo de la cajita con su ficha completa. */
+interface ApiDetailAlternative extends ApiAlternative {
+  description: string[]
+  categoryName: string | null
+  compatibleModels: ApiCompatibleModel[]
+  priceNet: string | null
+  cost: string | null
+  costUpdatedAt: string
+  /** Porcentajes como texto decimal ("100.00"); null si no se pueden calcular. */
+  markupPct: string | null
+  marginPct: string | null
+}
+interface ApiArticleDetail extends Omit<ApiBox, 'alternatives'> {
+  groupName: string | null
+  alternatives: ApiDetailAlternative[]
 }
 interface ApiSearchResponse {
   items: ApiBox[]
@@ -86,6 +106,9 @@ interface ApiOrdersResponse {
  *   GET /v1/lupa/articles/search?q=&page=&pageSize=  → { items, page, pageSize, hasMore, total }
  *                                                        (`&inStock=true`: solo artículos con stock;
  *                                                        `&startsWith=true`: solo los que empiezan con `q`)
+ *   GET /v1/lupa/articles/detail?code=                → la ficha del artículo: su cajita con precio y fecha, costo,
+ *                                                        márgenes, descripción y compatibilidades de cada uno
+ *                                                        (lupaGetArticle); 404 si no existe o no está activo
  *   GET /v1/lupa/warehouses                           → { items: [{ code, name }] }
  *   GET /v1/lupa/orders?page=&pageSize=               → { items, page, pageSize, hasMore, total }: las notas de pedido
  *                                                        de la ficha de cliente con el mail del usuario, de la más
@@ -124,6 +147,17 @@ export class ApiArticlesRepository implements ArticlesRepository {
       page: data.page,
       hasMore: data.hasMore,
       total: data.total,
+    }
+  }
+
+  async getArticle(code: string): Promise<ArticleDetail> {
+    const { data } = await this.http.get<ApiArticleDetail>('/v1/lupa/articles/detail', { params: { code } })
+    const baseUrl = this.http.defaults.baseURL ?? ''
+    const { alternatives: _alternatives, ...box } = toProductBox({ ...data, alternatives: [] }, baseUrl)
+    return {
+      ...box,
+      ...(data.groupName ? { groupName: data.groupName } : {}),
+      alternatives: data.alternatives.map((a) => toDetailArticle(a, baseUrl)),
     }
   }
 
@@ -199,9 +233,32 @@ function toAlternative(a: ApiAlternative): AlternativeArticle {
     brandCode: a.brandName ?? '',
     brandName: a.brandName ?? '',
     priceList: a.price == null ? 0 : Number(a.price),
+    ...(a.priceUpdatedAt ? { priceUpdatedAt: a.priceUpdatedAt } : {}),
     stock: Object.fromEntries(Object.entries(a.stock).map(([code, qty]) => [code, Number(qty)])),
     ...(a.locations && Object.keys(a.locations).length > 0 ? { locations: a.locations } : {}),
     ...(a.minStock != null ? { reorderPoint: Number(a.minStock) } : {}),
+  }
+}
+
+/** Número de un decimal en texto de la API; sin dato, la clave no se agrega. */
+const optionalNumber = <K extends string>(key: K, value: string | null): Partial<Record<K, number>> =>
+  value == null ? {} : ({ [key]: Number(value) } as Record<K, number>)
+
+function toDetailArticle(a: ApiDetailAlternative, baseUrl: string): DetailArticle {
+  const photoUrl = photoSrc(baseUrl, a.photoUrl)
+  const photoThumbUrl = photoSrc(baseUrl, a.photoUrl, 'thumb')
+  return {
+    ...toAlternative(a),
+    details: a.description,
+    ...(a.categoryName ? { categoryName: a.categoryName } : {}),
+    compatibleModels: a.compatibleModels.map(toCompatibleModel),
+    oemCodes: a.oemCodes,
+    ...optionalNumber('priceNet', a.priceNet),
+    ...optionalNumber('cost', a.cost),
+    costUpdatedAt: a.costUpdatedAt,
+    ...optionalNumber('markupPct', a.markupPct),
+    ...optionalNumber('marginPct', a.marginPct),
+    ...(photoUrl && photoThumbUrl ? { photoUrl, photoThumbUrl } : {}),
   }
 }
 

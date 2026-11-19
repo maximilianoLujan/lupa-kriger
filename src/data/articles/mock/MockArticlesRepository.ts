@@ -1,6 +1,14 @@
-import type { AlternativeArticle, ProductBox, SearchParams, SearchResponse, Warehouse } from '../../../types/article'
+import type {
+  AlternativeArticle,
+  ArticleDetail,
+  DetailArticle,
+  ProductBox,
+  SearchParams,
+  SearchResponse,
+  Warehouse,
+} from '../../../types/article'
 import type { CreateOrderInput, Order, OrderItem, OrdersResponse, PageParams } from '../../../types/order'
-import { normalizeText, tokenize } from '../../../utils/text'
+import { normalizeText, searchWords } from '../../../utils/text'
 import { DEFAULT_PAGE_SIZE, type ArticlesRepository } from '../repository'
 import { MOCK_ARTICLES } from './articles.mock'
 import { findMockCustomer } from './customers.mock'
@@ -30,17 +38,40 @@ function searchableText(box: ProductBox): string {
 const codeOnly = (value: string) => normalizeText(value).replace(/[^a-z0-9]/g, '')
 
 /**
- * "Comienza con", como la API: la descripción (de la cajita o de un equivalente) empieza con lo buscado, o el
- * código de un equivalente empieza así sin contar guiones ni espacios.
+ * "Comienza con", como la API: la descripción (de la cajita o de un equivalente) empieza con la primera palabra
+ * buscada y tiene las demás en cualquier lugar, o el código de un equivalente empieza con lo buscado sin contar
+ * guiones ni espacios.
  */
 function startsWithQuery(box: ProductBox, query: string): boolean {
-  const text = normalizeText(query)
+  const [first, ...rest] = searchWords(query)
   const code = codeOnly(query)
-  const descriptions = [box.description, ...box.alternatives.map((a) => a.description)]
+  const descriptions = [box.description, ...box.alternatives.map((a) => a.description)].map(normalizeText)
   return (
-    descriptions.some((d) => normalizeText(d).startsWith(text)) ||
+    descriptions.some((d) => d.startsWith(first) && rest.every((word) => d.includes(word))) ||
     (code.length > 0 && box.alternatives.some((a) => codeOnly(a.particularCode).startsWith(code)))
   )
+}
+
+/** En el mock no hay costos: se inventa uno estable a partir del precio (margen del 60 % sobre el costo). */
+const MOCK_VAT = 1.21
+const MOCK_MARKUP_PCT = 60
+const round2 = (value: number) => Math.round(value * 100) / 100
+
+function toDetailArticle(box: ProductBox, article: AlternativeArticle): DetailArticle {
+  const priceNet = round2(article.priceList / MOCK_VAT)
+  const cost = round2(priceNet / (1 + MOCK_MARKUP_PCT / 100))
+  return {
+    ...article,
+    details: box.details,
+    categoryName: 'Repuestos',
+    compatibleModels: box.compatibleModels,
+    oemCodes: [],
+    priceNet,
+    cost,
+    costUpdatedAt: article.priceUpdatedAt ?? new Date().toISOString(),
+    markupPct: MOCK_MARKUP_PCT,
+    marginPct: round2(((priceNet - cost) / priceNet) * 100),
+  }
 }
 
 const hasStock = (article: AlternativeArticle) => Object.values(article.stock).some((quantity) => quantity > 0)
@@ -73,7 +104,7 @@ export class MockArticlesRepository implements ArticlesRepository {
   }: SearchParams): Promise<SearchResponse> {
     await this.wait()
 
-    const tokens = tokenize(query)
+    const tokens = searchWords(query)
     const found = !tokens.length
       ? this.articles
       : startsWith
@@ -98,6 +129,27 @@ export class MockArticlesRepository implements ArticlesRepository {
       page: safePage,
       hasMore: start + pageSize < matches.length,
       total: matches.length,
+    }
+  }
+
+  /** La cajita que tiene ese código (el de la cabecera o el de un equivalente), con el pedido primero. */
+  async getArticle(code: string): Promise<ArticleDetail> {
+    await this.wait()
+
+    const wanted = code.trim().toLowerCase()
+    const matches = (value: string) => value.trim().toLowerCase() === wanted
+    const box =
+      this.articles.find((b) => b.alternatives.some((a) => matches(a.particularCode))) ??
+      this.articles.find((b) => matches(b.articleCode))
+    if (!box) throw new Error('No encontramos un artículo con ese código')
+
+    const requested = box.alternatives.find((a) => matches(a.particularCode))
+    const ordered = requested ? [requested, ...box.alternatives.filter((a) => a !== requested)] : box.alternatives
+    return {
+      ...box,
+      articleCode: requested?.particularCode ?? box.articleCode,
+      groupName: box.description,
+      alternatives: ordered.map((a) => toDetailArticle(box, a)),
     }
   }
 

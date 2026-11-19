@@ -39,4 +39,9 @@ describe('Highlight', () => {
     const { container } = render(<Highlight text="" query="a" />)
     expect(container.textContent).toBe('')
   })
+
+  it('no resalta los conectores de la búsqueda', () => {
+    render(<Highlight text="Bomba de agua para Megane" query="bomba de agua para megane" />)
+    expect(marks()).toEqual(['Bomba', 'agua', 'Megane'])
+  })
 })

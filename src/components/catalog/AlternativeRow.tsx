@@ -1,14 +1,17 @@
 import type { AlternativeArticle, Warehouse } from '../../types/article'
-import { formatPrice } from '../../utils/formatPrice'
 import { AddToCartButton } from './AddToCartButton'
 import { ALT_GRID } from './columns'
+import { ArticleCode } from './ArticleCode'
 import { Highlight } from './Highlight'
+import { PriceTag } from './PriceTag'
 import { StockBadge } from './StockBadge'
 
 interface AlternativeRowProps {
   article: AlternativeArticle
   warehouses: Warehouse[]
   query: string
+  /** Abre la ficha del artículo (doble clic en el código). */
+  onOpenDetail?: (code: string) => void
 }
 
 /**
@@ -30,9 +33,10 @@ const formatQuantity = (quantity: number) => quantity.toLocaleString('es-AR', { 
 
 /**
  * Una fila de equivalente: marca, código, ubicación en la estantería y punto de pedido (los dos últimos, si el
- * usuario los puede ver) | precio | stock por sucursal | agregar al carrito.
+ * usuario los puede ver) | precio (resaltado si lleva más de 30 días sin cambios) | stock por sucursal | agregar
+ * al carrito. Con doble clic en el código se abre la ficha del artículo.
  */
-export function AlternativeRow({ article, warehouses, query }: AlternativeRowProps) {
+export function AlternativeRow({ article, warehouses, query, onOpenDetail }: AlternativeRowProps) {
   const location = shelfLocation(article, warehouses)
   // Sin punto de pedido cargado (0) no hay nada que mostrar.
   const reorderPoint = article.reorderPoint && article.reorderPoint > 0 ? formatQuantity(article.reorderPoint) : null
@@ -49,7 +53,9 @@ export function AlternativeRow({ article, warehouses, query }: AlternativeRowPro
           )}
         </p>
         <p className="truncate text-xs text-ink-soft">
-          <Highlight text={article.particularCode} query={query} />
+          <ArticleCode code={article.particularCode} onOpen={onOpenDetail}>
+            <Highlight text={article.particularCode} query={query} />
+          </ArticleCode>
         </p>
         {location && (
           <p className="truncate text-[11px] text-ink-soft" title={`Ubicación: ${location}`}>
@@ -63,8 +69,8 @@ export function AlternativeRow({ article, warehouses, query }: AlternativeRowPro
         )}
       </div>
 
-      <p className="text-right text-sm font-bold whitespace-nowrap text-emerald-600 tabular-nums">
-        $ {formatPrice(article.priceList)}
+      <p className="text-right text-sm">
+        <PriceTag price={article.priceList} updatedAt={article.priceUpdatedAt} />
       </p>
 
       <div className="flex gap-1.5">

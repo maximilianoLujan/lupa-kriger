@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ArticleCard } from '../components/catalog/ArticleCard'
+import { ArticleDetailDialog } from '../components/catalog/ArticleDetailDialog'
 import { ListHeader } from '../components/catalog/ListHeader'
 import { SearchBar } from '../components/catalog/SearchBar'
 import { StartsWithFilter } from '../components/catalog/StartsWithFilter'
@@ -20,6 +21,8 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
   const [query, setQuery] = useState('')
   const [onlyInStock, setOnlyInStock] = useState(false)
   const [startsWith, setStartsWith] = useState(false)
+  /** Código del artículo con la ficha abierta (doble clic en un código). */
+  const [detailCode, setDetailCode] = useState<string | null>(null)
   const debouncedQuery = useDebouncedValue(query)
   const warehouses = useWarehouses(repository)
   const { items, hasMore, loading, error, loadMore, retry } = useArticlesSearch(repository, debouncedQuery, {
@@ -42,7 +45,13 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
 
       <main className="mx-auto max-w-6xl space-y-3 px-4 py-4">
         {items.map((box) => (
-          <ArticleCard key={box.articleCode} box={box} warehouses={warehouses} query={debouncedQuery} />
+          <ArticleCard
+            key={box.articleCode}
+            box={box}
+            warehouses={warehouses}
+            query={debouncedQuery}
+            onOpenDetail={setDetailCode}
+          />
         ))}
 
         {loading && (
@@ -73,6 +82,18 @@ export function CatalogPage({ repository = articlesRepository }: CatalogPageProp
           </Button>
         )}
       </main>
+
+      {detailCode && (
+        <ArticleDetailDialog
+          // Cada artículo es una ficha nueva: al pasar a un alternativo arranca desde arriba.
+          key={detailCode}
+          repository={repository}
+          code={detailCode}
+          warehouses={warehouses}
+          onOpen={setDetailCode}
+          onClose={() => setDetailCode(null)}
+        />
+      )}
     </div>
   )
 }

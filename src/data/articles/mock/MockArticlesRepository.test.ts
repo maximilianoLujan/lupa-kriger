@@ -88,6 +88,27 @@ describe('MockArticlesRepository.search', () => {
   })
 })
 
+describe('MockArticlesRepository.getArticle', () => {
+  it('arma la ficha de la cajita con el artículo pedido primero', async () => {
+    const detail = await repo.getArticle('hqf-2234c')
+    expect(detail).toMatchObject({ articleCode: 'HQF-2234C', groupName: 'PASTILLA DE FRENO DELANTERA' })
+    expect(detail.alternatives.map((a) => a.particularCode)).toEqual(['HQF-2234C', 'FR-1024', 'N-1037'])
+    expect(detail.compatibleModels.map((m) => m.model)).toContain('GOL TREND')
+
+    const [article] = detail.alternatives
+    expect(article).toMatchObject({ priceList: 34500, markupPct: 60, marginPct: 37.5, categoryName: 'Repuestos' })
+    // Precio sin IVA y costo salen del precio de lista: 34500 / 1,21 y eso / 1,6.
+    expect(article.priceNet).toBeCloseTo(28512.4, 1)
+    expect(article.cost).toBeCloseTo(17820.25, 1)
+    expect(article.details).toContain('JUEGO X4')
+  })
+
+  it('también encuentra por el código de la cajita y rechaza los que no existen', async () => {
+    expect((await repo.getArticle('10002')).alternatives[0].particularCode).toBe('W 712/75')
+    await expect(repo.getArticle('NO-EXISTE')).rejects.toThrow('No encontramos un artículo con ese código')
+  })
+})
+
 describe('MockArticlesRepository.getWarehouses', () => {
   it('devuelve las sucursales mock', async () => {
     expect(await repo.getWarehouses()).toEqual(MOCK_WAREHOUSES)
@@ -126,8 +147,19 @@ describe('datos mock', () => {
     // El comienzo del código de un equivalente, sin contar espacios ni guiones ("W 712/75").
     expect(await codes('w712', true)).toEqual(['10002'])
     expect(await codes('712', true)).toEqual([])
+    // Empieza con la primera palabra y las demás están en cualquier lugar, sin contar los conectores.
+    expect(await codes('filtro mann', true)).toContain('10002')
+    expect(await codes('filtro para el mann', true)).toContain('10002')
+    expect(await codes('mann filtro', true)).not.toContain('10002')
     // Sin texto no filtra nada.
     expect((await repo.search({ query: '', page: 1, startsWith: true })).total).toBe(MOCK_ARTICLES.length)
+  })
+
+  it('los conectores no cuentan al buscar', async () => {
+    const codes = async (query: string) =>
+      (await repo.search({ query, page: 1, pageSize: 50 })).data.map((b) => b.articleCode)
+    expect(await codes('filtro para aceite')).toEqual(await codes('filtro aceite'))
+    expect(await codes('filtro con el aceite')).toContain('10002')
   })
 
   it('cada equivalente tiene stock para todas las sucursales', () => {
