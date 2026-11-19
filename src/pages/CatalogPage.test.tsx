@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Route, Routes } from 'react-router-dom'
@@ -68,7 +68,7 @@ describe('CatalogPage', () => {
     const search = vi.fn(async () => ({ data: [], page: 1, hasMore: false, total: 0 }))
     const empty: ArticlesRepository = {
       search,
-      getWarehouses: () => repo.getWarehouses(),
+      getArticle: (c) => repo.getArticle(c), getWarehouses: () => repo.getWarehouses(),
       getOrders: (p) => repo.getOrders(p),
       createOrder: (i) => repo.createOrder(i),
     }
@@ -136,7 +136,7 @@ describe('CatalogPage', () => {
         if (fail) throw new Error('Sin conexión')
         return repo.search(params)
       },
-      getWarehouses: () => repo.getWarehouses(),
+      getArticle: (c) => repo.getArticle(c), getWarehouses: () => repo.getWarehouses(),
       getOrders: (p) => repo.getOrders(p),
       createOrder: (i) => repo.createOrder(i),
     }
@@ -184,10 +184,35 @@ describe('CatalogPage', () => {
 
   it('no setea sucursales si se desmonta antes de la respuesta', async () => {
     const getWarehouses = vi.fn(() => new Promise<never>(() => {}))
-    const pending: ArticlesRepository = { search: (p) => repo.search(p), getWarehouses, getOrders: (p) => repo.getOrders(p), createOrder: (i) => repo.createOrder(i) }
+    const pending: ArticlesRepository = { search: (p) => repo.search(p), getArticle: (c) => repo.getArticle(c), getWarehouses, getOrders: (p) => repo.getOrders(p), createOrder: (i) => repo.createOrder(i) }
     sessionStorage.setItem('auth:user', JSON.stringify({ username: '123', name: 'G' }))
     const { unmount } = renderCatalog(pending)
     unmount()
     expect(getWarehouses).toHaveBeenCalledTimes(1)
+  })
+
+  it('con doble clic en un código abre la ficha del artículo y desde ahí pasa a un alternativo', async () => {
+    const { user } = await setup()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.dblClick(screen.getByRole('button', { name: 'Ver la ficha de HQF-2234C' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Ficha del artículo HQF-2234C' })
+    expect(await within(dialog).findByRole('heading', { name: 'Pastilla freno delantera Ferodo' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Margen sobre costo')).toBeInTheDocument()
+
+    // Doble clic en un alternativo: la ficha pasa a ese artículo.
+    await user.dblClick(within(dialog).getByRole('button', { name: 'Ver la ficha de FR-1024' }))
+    const next = await screen.findByRole('dialog', { name: 'Ficha del artículo FR-1024' })
+    expect(await within(next).findByRole('heading', { name: 'Pastilla freno delantera Fric-Rot' })).toBeInTheDocument()
+
+    await user.click(within(next).getByRole('button', { name: 'Cerrar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('resalta en el listado los precios que llevan más de 30 días sin cambios', async () => {
+    await setup()
+    // En el mock, el Ferodo de la primera cajita tiene un precio viejo; el Fric-Rot no tiene fecha.
+    expect(screen.getByText('$ 34.500')).toHaveClass('bg-butter')
+    expect(screen.getByText('$ 28.900')).not.toHaveClass('bg-butter')
   })
 })

@@ -2,6 +2,7 @@ import type { CompatibleModel, ProductBox, Warehouse } from '../../types/article
 import { boxTitle } from '../../utils/boxTitle'
 import { yearRange } from '../../utils/yearRange'
 import { AlternativeRow } from './AlternativeRow'
+import { ArticleCode } from './ArticleCode'
 import { ArticlePhoto } from './ArticlePhoto'
 import { CARD_GRID } from './columns'
 import { Highlight } from './Highlight'
@@ -10,6 +11,8 @@ interface ArticleCardProps {
   box: ProductBox
   warehouses: Warehouse[]
   query: string
+  /** Abre la ficha de un artículo (doble clic en su código). */
+  onOpenDetail?: (code: string) => void
 }
 
 function groupByBrand(models: CompatibleModel[]) {
@@ -24,9 +27,10 @@ function groupByBrand(models: CompatibleModel[]) {
 
 /**
  * Cajita del listado: foto, código y descripción (sin las líneas de detalle), modelos compatibles y equivalentes.
- * En mobile se apila; en desktop es una fila con columnas, como lupa-web.
+ * En mobile se apila; en desktop es una fila con columnas, como lupa-web. Con doble clic en un código (el de la
+ * cajita o el de un equivalente) se abre la ficha de ese artículo.
  */
-export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
+export function ArticleCard({ box, warehouses, query, onOpenDetail }: ArticleCardProps) {
   const title = boxTitle(box)
   const brands = groupByBrand(box.compatibleModels)
 
@@ -43,7 +47,10 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
 
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold tracking-wide text-ink-soft tabular-nums">
-            Cód. <Highlight text={box.articleCode} query={query} />
+            Cód.{' '}
+            <ArticleCode code={box.articleCode} onOpen={onOpenDetail}>
+              <Highlight text={box.articleCode} query={query} />
+            </ArticleCode>
           </p>
           <h3 className="text-sm leading-snug font-bold text-ink">
             <Highlight text={title} query={query} />
@@ -82,7 +89,13 @@ export function ArticleCard({ box, warehouses, query }: ArticleCardProps) {
       {/* Equivalentes: siempre en la cuarta columna, aunque no haya modelos. */}
       <ul className="mt-3 divide-y divide-line border-t border-line lg:col-start-4 lg:mt-0 lg:border-t-0">
         {box.alternatives.map((a) => (
-          <AlternativeRow key={a.articleCode} article={a} warehouses={warehouses} query={query} />
+          <AlternativeRow
+            key={a.articleCode}
+            article={a}
+            warehouses={warehouses}
+            query={query}
+            onOpenDetail={onOpenDetail}
+          />
         ))}
       </ul>
     </article>

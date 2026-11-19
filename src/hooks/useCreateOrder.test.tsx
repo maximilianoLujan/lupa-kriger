@@ -11,7 +11,7 @@ import { useCreateOrder } from './useCreateOrder'
 const created: Order = { id: '1', number: 'Nota de pedido 00000001', createdAt: '2026-11-10T10:00:00Z', status: 'pending', items: [], total: 0 }
 
 function repoWith(createOrder: ArticlesRepository['createOrder']): ArticlesRepository {
-  return { search: vi.fn(), getWarehouses: vi.fn(), getOrders: vi.fn(), createOrder }
+  return { search: vi.fn(), getArticle: vi.fn(), getWarehouses: vi.fn(), getOrders: vi.fn(), createOrder }
 }
 
 function wrapper(client: QueryClient) {

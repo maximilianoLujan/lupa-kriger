@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import logo from '../../assets/logo.jpg'
 import type { ProductBox, Warehouse } from '../../types/article'
 import { yearRange } from '../../utils/yearRange'
@@ -197,5 +197,25 @@ describe('yearRange', () => {
     expect(yearRange({ brandName: 'A', model: 'B', since: '2000' })).toBe('desde 2000')
     expect(yearRange({ brandName: 'A', model: 'B', until: '2005' })).toBe('hasta 2005')
     expect(yearRange({ brandName: 'A', model: 'B' })).toBeNull()
+  })
+
+  it('con doble clic en el código de la cajita o de un equivalente pide abrir su ficha', async () => {
+    const onOpenDetail = vi.fn()
+    const user = userEvent.setup()
+    render(<ArticleCard box={box} warehouses={warehouses} query="" onOpenDetail={onOpenDetail} />)
+
+    await user.dblClick(screen.getByRole('button', { name: 'Ver la ficha de 1' }))
+    await user.dblClick(screen.getByRole('button', { name: 'Ver la ficha de N-1037' }))
+    expect(onOpenDetail.mock.calls).toEqual([['1'], ['N-1037']])
+  })
+
+  it('resalta el precio del equivalente que lleva más de 30 días sin cambios', () => {
+    const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString()
+    const stale = { ...box, alternatives: [{ ...box.alternatives[0], priceUpdatedAt: old }, box.alternatives[1]] }
+    render(<ArticleCard box={stale} warehouses={warehouses} query="" />)
+
+    expect(screen.getByText('$ 28.900')).toHaveClass('bg-butter')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Precio sin modificar hace 40 días')
+    expect(screen.getByText('$ 22.100')).not.toHaveClass('bg-butter')
   })
 })

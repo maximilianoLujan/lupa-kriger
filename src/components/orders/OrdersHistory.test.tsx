@@ -60,7 +60,7 @@ describe('OrdersHistory', () => {
     let fail = true
     const flaky: ArticlesRepository = {
       search: (p) => repo.search(p),
-      getWarehouses: () => repo.getWarehouses(),
+      getArticle: (c) => repo.getArticle(c), getWarehouses: () => repo.getWarehouses(),
       createOrder: (i) => repo.createOrder(i),
       getOrders: async (params) => {
         if (fail) throw new Error('Sin conexión')

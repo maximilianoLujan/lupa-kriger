@@ -29,6 +29,11 @@ export interface AlternativeArticle {
   brandCode: string
   brandName: string
   priceList: number
+  /**
+   * Última vez que cambió el precio (ISO-8601). Los que llevan más de 30 días sin cambios se muestran
+   * resaltados. Sin fecha no se resalta.
+   */
+  priceUpdatedAt?: string
   /** Stock por código de sucursal. */
   stock: Record<string, number>
   /**
@@ -61,6 +66,39 @@ export interface ProductBox {
   alternatives: AlternativeArticle[]
 }
 
+/**
+ * Un artículo dentro de la ficha: lo mismo que en el listado más su descripción larga, rubro,
+ * compatibilidades propias, códigos OEM, costo y márgenes.
+ */
+export interface DetailArticle extends AlternativeArticle {
+  /** Líneas de la descripción larga. */
+  details: string[]
+  categoryName?: string
+  compatibleModels: CompatibleModel[]
+  oemCodes: string[]
+  /** Precio sin IVA. */
+  priceNet?: number
+  /** Costo sin IVA. */
+  cost?: number
+  costUpdatedAt?: string
+  /** Margen sobre el costo, en %. */
+  markupPct?: number
+  /** Margen sobre la venta, en %. */
+  marginPct?: number
+  photoUrl?: string
+  photoThumbUrl?: string
+}
+
+/**
+ * Ficha de un artículo: su cajita (grupo, compatibilidades de todos los equivalentes, foto) con la ficha
+ * completa de cada uno. El primero de `alternatives` es el artículo pedido; el resto, sus alternativos.
+ */
+export interface ArticleDetail extends Omit<ProductBox, 'alternatives'> {
+  /** Nombre del grupo de equivalencia, si el artículo tiene uno. */
+  groupName?: string
+  alternatives: DetailArticle[]
+}
+
 export interface SearchParams {
   query: string
   /** 1-based. */
@@ -69,8 +107,8 @@ export interface SearchParams {
   /** Solo artículos con stock en alguna sucursal (y, en cada cajita, solo los equivalentes que lo tienen). */
   inStock?: boolean
   /**
-   * "Comienza con": solo los artículos cuyo código o descripción empieza con `query` (sin los que lo tienen en el
-   * medio). Sin `query` no cambia nada.
+   * "Comienza con": solo los artículos cuyo código empieza con `query`, o cuya descripción empieza con la primera
+   * palabra y tiene las demás en cualquier lugar. Sin `query` no cambia nada.
    */
   startsWith?: boolean
 }

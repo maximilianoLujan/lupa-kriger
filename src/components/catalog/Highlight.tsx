@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
-import { escapeRegExp, tokenize } from '../../utils/text'
+import { escapeRegExp, searchWords } from '../../utils/text'
 
 interface HighlightProps {
   text: string
   query: string
 }
 
-/** Resalta las palabras de `query` dentro de `text`, sin distinguir acentos ni mayúsculas. */
+/** Resalta las palabras de `query` (sin los conectores) dentro de `text`, sin distinguir acentos ni mayúsculas. */
 export function Highlight({ text, query }: HighlightProps) {
-  const tokens = useMemo(() => tokenize(query), [query])
+  const tokens = useMemo(() => searchWords(query), [query])
   if (!tokens.length || !text) return <>{text}</>
 
   // Comparamos sobre una versión sin acentos pero recortamos el texto original,

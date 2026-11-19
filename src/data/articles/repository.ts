@@ -1,4 +1,4 @@
-import type { SearchParams, SearchResponse, Warehouse } from '../../types/article'
+import type { ArticleDetail, SearchParams, SearchResponse, Warehouse } from '../../types/article'
 import type { CreateOrderInput, Order, OrdersResponse, PageParams } from '../../types/order'
 
 /**
@@ -7,6 +7,8 @@ import type { CreateOrderInput, Order, OrdersResponse, PageParams } from '../../
  */
 export interface ArticlesRepository {
   search(params: SearchParams): Promise<SearchResponse>
+  /** Ficha de un artículo por su código. Rechaza si no existe o ya no está activo. */
+  getArticle(code: string): Promise<ArticleDetail>
   getWarehouses(): Promise<Warehouse[]>
   /** Historial de pedidos del cliente, del más nuevo al más viejo, paginado. */
   getOrders(params: PageParams): Promise<OrdersResponse>

@@ -3,7 +3,8 @@ import type { ProductBox } from '../../../types/article'
 /**
  * Artículos hardcodeados para el MVP. Misma forma que devolverá la API.
  * Stock y ubicación por sucursal usan los códigos de `warehouses.mock.ts`; algunos no tienen ubicación asignada.
- * Algunos tienen punto de pedido (`reorderPoint`), como lo ve el personal de la empresa.
+ * Algunos tienen punto de pedido (`reorderPoint`), como lo ve el personal de la empresa, y un par tienen un precio
+ * viejo (`priceUpdatedAt`), para ver el resaltado de los que llevan más de 30 días sin cambios.
  */
 export const MOCK_ARTICLES: ProductBox[] = [
   {
@@ -17,7 +18,7 @@ export const MOCK_ARTICLES: ProductBox[] = [
     ],
     alternatives: [
       { articleCode: '10001-1', particularCode: 'FR-1024', description: 'Pastilla freno delantera Fric-Rot', brandCode: 'FRR', brandName: 'FRIC-ROT', priceList: 28900, stock: { GUA: 12 }, locations: { GUA: 'A-03-12' }, reorderPoint: 6 },
-      { articleCode: '10001-2', particularCode: 'HQF-2234C', description: 'Pastilla freno delantera Ferodo', brandCode: 'FER', brandName: 'FERODO', priceList: 34500, stock: { GUA: 4 }, locations: { GUA: 'A-03-14' }, reorderPoint: 4 },
+      { articleCode: '10001-2', particularCode: 'HQF-2234C', description: 'Pastilla freno delantera Ferodo', brandCode: 'FER', brandName: 'FERODO', priceList: 34500, priceUpdatedAt: '2026-08-03T10:00:00-03:00', stock: { GUA: 4 }, locations: { GUA: 'A-03-14' }, reorderPoint: 4 },
       { articleCode: '10001-3', particularCode: 'N-1037', description: 'Pastilla freno delantera Cobreq', brandCode: 'COB', brandName: 'COBREQ', priceList: 22100, stock: { GUA: 0 } },
     ],
   },
@@ -34,7 +35,7 @@ export const MOCK_ARTICLES: ProductBox[] = [
     alternatives: [
       { articleCode: '10002-1', particularCode: 'W 712/75', description: 'Filtro de aceite Mann', brandCode: 'MAN', brandName: 'MANN', priceList: 9800, stock: { GUA: 25 }, locations: { GUA: 'B-01-02' }, reorderPoint: 10 },
       { articleCode: '10002-2', particularCode: 'PH5796', description: 'Filtro de aceite Fram', brandCode: 'FRM', brandName: 'FRAM', priceList: 7650, stock: { GUA: 8 }, locations: { GUA: 'B-01-03' } },
-      { articleCode: '10002-3', particularCode: 'WO-120', description: 'Filtro de aceite Wega', brandCode: 'WEG', brandName: 'WEGA', priceList: 5900, stock: { GUA: 3 } },
+      { articleCode: '10002-3', particularCode: 'WO-120', description: 'Filtro de aceite Wega', brandCode: 'WEG', brandName: 'WEGA', priceList: 5900, priceUpdatedAt: '2026-06-22T16:30:00-03:00', stock: { GUA: 3 } },
     ],
   },
   {

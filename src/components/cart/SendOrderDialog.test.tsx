@@ -17,7 +17,7 @@ function seedReal() {
 }
 
 function repoWith(createOrder: ArticlesRepository['createOrder']): ArticlesRepository {
-  return { search: (p) => repo.search(p), getWarehouses: () => repo.getWarehouses(), getOrders: (p) => repo.getOrders(p), createOrder }
+  return { search: (p) => repo.search(p), getArticle: (c) => repo.getArticle(c), getWarehouses: () => repo.getWarehouses(), getOrders: (p) => repo.getOrders(p), createOrder }
 }
 
 function setup(repository: ArticlesRepository = repo) {
